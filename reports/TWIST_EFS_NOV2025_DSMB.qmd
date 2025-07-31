@@ -190,11 +190,20 @@ tab <-
   border_outer(part = "footer") %>%
   fix_border_issues()
 
-merge_at(tab, i = 1:2, j = 1, part = "header")
+tab <- merge_at(tab, i = 1:2, j = 1, part = "header")
 
 tab
 ```
 
+
+## Table 11 CEC Adjudicated Heart Failure Hospitalizations and Non-elective Mitral Valve Reinterventions
+```{r table11}
+#| echo: false
+#source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_2025_11_DSMB/programs/TLFs/t11_CEC_HFH_MVR.R")
+
+
+```
 
 # Figures
 

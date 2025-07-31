@@ -15,6 +15,7 @@ library(patchwork)
 
 # enrolled pop
 enrolled <- pr2[!is.na(pr2$PRSTDAT),]
+
 enrolled <- enrolled[c("Subject")]
 
 
