@@ -15,10 +15,13 @@ program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date
 #load("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS/data_archive/data_2025JUL16.RData")
 #source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
 
-load(paste0("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/data/data_", extract_date, ".RData"))
-source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
-source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsv.R")
-source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adststat.R")
+#load(paste0("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/data/data_", extract_date, ".RData"))
+#source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
+#source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsv.R")
+#source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adststat.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsl.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsv.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adststat.R")
 
 totaln_enrolled <- dplyr::n_distinct(adsl$USUBJID[adsl$EnrolledFl == "Y"])
 totaln_implanted <- dplyr::n_distinct(adsl$USUBJID[adsl$ImplantedFl == "Y"])
@@ -93,7 +96,7 @@ allresults <- tibble(
 allresults
 
 # make flextable
-#tab <- 
+tab <- 
   flextable(allresults) %>%
   set_caption(caption = NULL) %>%
   set_header_labels(
@@ -119,17 +122,14 @@ allresults
     "Categorical measures (%)",
     program_info
   )) %>%
-  font(fontname = "Calibri", part = "footer") %>%
-  fontsize(size = 8, part = "footer") %>%
-  line_spacing(space = 0,
-               part = "footer")%>%
-  line_spacing(space = 0.25,
-                 part = "body")%>%
-  border_outer(part = "footer", border=fp_border(color="black", width=0.5)) %>%
-  fix_border_issues()
+    font(fontname = "Calibri", part = "footer") %>% 
+    fontsize(size = 11, part = "footer") %>%
+    padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
+    border_outer(part = "footer") %>% 
+    fix_border_issues()
 
 
-
+tab
 
 
 

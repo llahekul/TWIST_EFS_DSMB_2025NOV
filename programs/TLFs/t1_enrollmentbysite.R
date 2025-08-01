@@ -21,9 +21,8 @@ program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date
 
 
 ## NEED TO READ ADSL INTO ENVIRONMENT FIRST 
-#load(paste0("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/data/data_", extract_date, ".RData"))
-#source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
-
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsl.R")
+#source("C:/Users/isabelle_weir/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsl.R")
 #source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
 
 totaln_enrolled <- dplyr::n_distinct(adsl$USUBJID[adsl$EnrolledFl == "Y" & adsl$USAFl=="Y"])
@@ -96,33 +95,34 @@ t1 <- t1 %>%
 
 
 
-t1_enrollmentbysite <- flextable(t1) %>%
-  set_caption(caption = NULL) %>%
+t1_enrollmentbysite <- flextable(t1) %>% 
+  set_caption(caption = NULL) %>% 
   set_header_labels(
-    SiteNumber = "Site Number",
+    SiteNumber = "Site Number", 
     SiteName = "Site Name",
-    print_enrolled = paste0("Enrolled\u00B9 (N=", totaln_enrolled, ")"),
+    print_enrolled = paste0("Enrolled\u00B9 (N=", totaln_enrolled, ")"), 
     print_implanted = paste0("Implanted\u00B2 (N=", totaln_implanted, ")")
-  ) %>%
-  autofit() %>%
+  ) %>% 
+  autofit() %>% 
   font(fontname = "Calibri", part = "all") %>%
-  fontsize(size = 11, part = "all") %>%
+  fontsize(size = 11, part = "all") %>% 
   align(align = "left", part = "all") %>%
   bold(i = 1, part = "header") %>%
-  bg(i = 1, bg = "#D3D3D3", part = "header") %>%
-  border(part = "all", border = officer::fp_border(color = "grey70", width = 1)) %>%
-  width(j = 1, width = 1.25) %>%    
+  bg(i = 1, bg = "#D3D3D3", part = "header") %>% 
+  border(part = "all", border = officer::fp_border(color = "grey70", width = 1)) %>% 
+  width(j = 1, width = 1.25) %>% 
   width(j = 2, width = 2.75) %>% 
-  width(j = 3:4, width = 2) %>%
-  add_footer_lines(c(
-    "[1] Enrolled: A patient is considered enrolled if they have signed informed consent and have the study procedure attempted (defined as introduction of the investigational delivery system into the patient).",
-    "[2] Implanted: A patient is considered implanted if they have undergone the study procedure and leave the operating room with the study valve in place.",
-    "Categorical measures: %",
+  width(j = 3:4, width = 2) %>% 
+  add_footer_lines(paste0(
+    "[1] Enrolled: A patient is considered enrolled if they have signed informed consent and have the study procedure attempted (defined as introduction of the investigational delivery system into the patient).\n",
+    "[2] Implanted: A patient is considered implanted if they have undergone the study procedure and leave the operating room with the study valve in place.\n",
+    "Categorical measures: %\n",
     program_info
   )) %>%
-  font(fontname = "Calibri", part = "footer") %>%
+  font(fontname = "Calibri", part = "footer") %>% 
   fontsize(size = 11, part = "footer") %>%
-  border_outer(part = "footer") %>%
+  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
+  border_outer(part = "footer") %>% 
   fix_border_issues()
 
 

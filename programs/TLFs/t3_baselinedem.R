@@ -155,8 +155,8 @@ t_baseline <- flextable(summary_table) %>%
     Variable = "Baseline Characteristic",
     Statistic = "Total"
   ) %>%
-  width(j = 1, width = 7.5) %>%
-  width(j = 2, width = 7.5) %>%
+  width(j = 1, width = 4) %>%
+  width(j = 2, width = 2) %>%
   font(fontname = "Calibri", part = "all") %>%
   fontsize(size = 11, part = "all") %>%
   align(align = "left", part = "all") %>%
@@ -168,13 +168,13 @@ t_baseline <- flextable(summary_table) %>%
     "Categorical measures: n/Total N (%)",
     program_info
   )) %>%
-  font(fontname = "Calibri", part = "footer") %>%
+  font(fontname = "Calibri", part = "footer") %>% 
   fontsize(size = 11, part = "footer") %>%
-  border_outer(part = "footer") %>%
+  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
+  border_outer(part = "footer") %>% 
   fix_border_issues()
-
-
-
+  
+  
 t_baseline
 
 

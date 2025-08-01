@@ -1,0 +1,201 @@
+---
+title: "TWIST-EFS - TLFs for ROP"
+date: "2025-TBD"
+format:
+  docx:
+    toc: true
+    reference-doc: template.docx
+  pdf:
+    toc: true
+  html:
+    number-sections: true
+    theme: cerulean
+    highlight: kate
+    toc: true
+    toc-float:
+      collapsed: false
+      smooth-scroll: true
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+ knitr::opts_chunk$set(echo = TRUE) 
+library(knitr)
+library(dplyr)
+library(tibble)
+library(flextable)
+library(tinytex)
+library(officer)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(lubridate)
+library(stringr)
+library(showtext)
+library(patchwork)
+load("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS/data_archive/data_2025JUL28.RData")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsl.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsv.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adststat.R")
+```
+
+
+# Table 2 Patient Disposition & Follow-up Visit Compliance by Interval
+```{r table2, message=FALSE, warning=FALSE}
+#| echo: false
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t2_patientdisposition.R")
+
+t2_patientdisposition <- flextable(visit_df) %>%
+  set_caption(caption = NULL) %>%
+  autofit() %>%
+  font(fontname = "Calibri", part = "all") %>%
+  fontsize(size = 11, part = "all") %>%
+  align(align = "left", part = "all") %>%
+  bold(i = 1, part = "header") %>%
+  bg(i = 1, bg = "#D3D3D3", part = "header") %>%
+  padding(i = 2:4, j = 1:5, padding.left = 40) %>%
+  border(part = "all", border = officer::fp_border(color = "grey70", width = 1)) %>%
+  width(j = 1, width = 2.25) %>%
+  width(j = 2:5, width = 1.75) %>%
+  add_footer_lines(c(
+    "[1] Patients are eligible if they complete the visit or their visit window is open and prior to FU visit window , they (a) are alive , (b) are not explanted,  (c) did not withdraw from study,  (d) are not lost to FU.",
+    "[2] Specify the visit window: 30 Days FU window (23-37 days), 6 FU window (166-194 days), 1 year FU window (335-390 days).",
+    "Categorical measures: %",
+    program_info
+  )) %>%
+  font(fontname = "Calibri", part = "footer") %>% 
+  fontsize(size = 11, part = "footer") %>%
+  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
+  border_outer(part = "footer") %>% 
+  fix_border_issues()
+
+ 
+t2_patientdisposition
+```
+
+
+# Table 3 Demographics and Baseline Characteristics
+```{r table3, message=FALSE, warning=FALSE}
+#| echo: false
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t3_baselinedem.R")
+t_baseline <- flextable(summary_table) %>%
+  set_header_labels(
+    Variable = "Baseline Characteristic",
+    Statistic = "Total"
+  ) %>%
+  width(j = 1, width = 4) %>%
+  width(j = 2, width = 2) %>%
+  font(fontname = "Calibri", part = "all") %>%
+  fontsize(size = 11, part = "all") %>%
+  align(align = "left", part = "all") %>%
+  bold(i = 1, part = "header") %>%
+  bg(i = 1, bg = "#D3D3D3", part = "header") %>%
+  border(part = "all", border = officer::fp_border(color = "grey70", width = 1)) %>%
+  add_footer_lines(c(
+    "Continuous variables: Mean ± SD (n); Median (min, max)",
+    "Categorical measures: n/Total N (%)",
+    program_info
+  )) %>%
+  font(fontname = "Calibri", part = "footer") %>% 
+  fontsize(size = 11, part = "footer") %>%
+  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
+  border_outer(part = "footer") %>% 
+  fix_border_issues()
+  
+  
+t_baseline
+```
+
+
+# Table 11 CEC Adjudicated Heart Failure Hospitalizations and Non-elective Mitral Valve Reinterventions
+```{r table11, message=FALSE, warning=FALSE}
+#| echo: false
+#source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t11_CEC_HFH_MVR.R")
+
+tab <- 
+  flextable(allresults) %>%
+  set_caption(caption = NULL) %>%
+  set_header_labels(
+    Category = "",
+    E_NEvents="No. Events", 
+    E_Patients="Patients",
+    L_NEvents="No. Events", 
+    L_Patients="Patients",
+    T_NEvents="No. Events", 
+    T_Patients="Patients"
+  ) %>%
+  add_header_row(
+    top = TRUE,
+    values = c("Category", "Early Events \n (\u2264 30 Days)", 
+               "Late Events \n (\u003E 30 Days to 1 Year)", "Total Events"),
+    colwidths = c(1, 2, 2, 2) # Example: 1 column for "Main Header", 1 for "Sub Header 1", 1 for "Sub Header 2"
+  ) %>%
+  autofit() %>%
+  font(fontname = "Calibri", part = "all") %>%
+  fontsize(size = 11, part = "all") %>%
+  align(align = "center", part = "body") %>%
+  align(i=1:2, j=1, align = "left", part = "body") %>%
+  align(i=1:2, align = "center", part = "header") %>%
+  bold(i = 1:2, part = "header") %>%
+  bg(i = 1:2, bg = "#D3D3D3", part = "header") %>%
+  border(part = "all", border = officer::fp_border(color = "grey70", width = 1)) %>%
+  width(j = 1, width = 2) %>%    
+  width(j = 2:7, width = 1) %>% 
+  #width(j = 3:4, width = 2) %>%
+  add_footer_lines(c(
+    "Categorical measures (%)",
+    program_info
+  )) %>%
+  font(fontname = "Calibri", part = "footer") %>% 
+  fontsize(size = 11, part = "footer") %>%
+  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
+  border_outer(part = "footer") %>% 
+  fix_border_issues()
+
+tab <- merge_at(tab, i = 1:2, j = 1, part = "header")
+
+tab
+```
+
+
+# Table 13 NYHA Class: Unpaired Analysis
+```{r table13, message=FALSE, warning=FALSE}
+#| echo: false
+#source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t13_NYHA.R")
+
+tab <- 
+  flextable(allresults) %>%
+  set_caption(caption = NULL) %>%
+  set_header_labels(
+    Category = "",
+    NYHAClass="NYHA Class", 
+    Baseline=paste0("Baseline \n (N=", totaln_implanted, ")"),
+    res30D=paste0("30 Days \n (N=", denom30, ")"), 
+    res6M=paste0("6 Months \n (N=", denom6M, ")"),
+    res1Y=paste0("1 Year \n (N=", denom1Y, ")")) %>%
+  autofit() %>%
+  font(fontname = "Calibri", part = "all") %>%
+  fontsize(size = 11, part = "all") %>%
+  align(align = "center", part = "body") %>%
+  align(i=1:4, j=1, align = "left", part = "body") %>%
+  align(i=1, j=2:5, align = "center", part = "header") %>%
+  bold(i = 1, part = "header") %>%
+  bg(i = 1, bg = "#D3D3D3", part = "header") %>%
+  border(part = "all", border = officer::fp_border(color = "black", width = 0.5)) %>%
+  # width(j = 1, width = 2) %>%    
+  # width(j = 2:7, width = 1) %>% 
+  #width(j = 3:4, width = 2) %>%
+  add_footer_lines(c(
+    "Categorical measures (%)",
+    program_info
+  )) %>%
+    font(fontname = "Calibri", part = "footer") %>% 
+    fontsize(size = 11, part = "footer") %>%
+    padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
+    border_outer(part = "footer") %>% 
+    fix_border_issues()
+
+
+tab
+```

@@ -7,8 +7,8 @@ library(tibble)
 library(stringr)
 
 
-load("~/Innovalve/Rdata archive/25JUL2025.RData")
-source("Q:/Innovalve/TWIST_EFS/Programming/Reports/2025_11_DSMB/Prgs/ADS/mk_adsl.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsl.R")
+
 
 extract_date <- "09JUL2025"
 program_name <- "t10_CECdeath.R"
@@ -27,16 +27,6 @@ t_data %>%
   mutate(datediff = FADAT_NEW_INT- PRSTDAT)%>%
   mutate(Early = case_when(datediff < 30 ~"Y", TRUE~"N"))%>%
   mutate(Late = case_when(datediff >= 30 & datediff <= 365 ~"Y", TRUE~"N"))
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -90,9 +80,10 @@ t1_enrollmentbysite <- flextable(t1) %>%
     "Categorical measures: %",
     program_info
   )) %>%
-  font(fontname = "Calibri", part = "footer") %>%
+  font(fontname = "Calibri", part = "footer") %>% 
   fontsize(size = 11, part = "footer") %>%
-  border_outer(part = "footer") %>%
+  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
+  border_outer(part = "footer") %>% 
   fix_border_issues()
 
 

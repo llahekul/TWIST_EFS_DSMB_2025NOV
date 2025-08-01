@@ -13,13 +13,14 @@ program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date
                        " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
 
 ## NEED TO READ ADSL INTO ENVIRONMENT FIRST 
-load("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS/data_archive/data_2025JUL16.RData")
+#load("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS/data_archive/data_2025JUL16.RData")
 #source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
 
 #load(paste0("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/data/data_", extract_date, ".RData"))
 #source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
 #source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsv.R")
 #source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adststat.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adststat.R")
 
 totaln_enrolled <- dplyr::n_distinct(adsl$USUBJID[adsl$EnrolledFl == "Y"])
 
@@ -257,16 +258,15 @@ tab <-
     "Categorical measures (%)",
     program_info
   )) %>%
-  font(fontname = "Calibri", part = "footer") %>%
-  fontsize(size = 8, part = "footer") %>%
-  line_spacing(space = 0,
-               part = "footer")%>%
-  border_outer(part = "footer") %>%
+  font(fontname = "Calibri", part = "footer") %>% 
+  fontsize(size = 11, part = "footer") %>%
+  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
+  border_outer(part = "footer") %>% 
   fix_border_issues()
 
-merge_at(tab, i = 1:2, j = 1, part = "header")
+tab <- merge_at(tab, i = 1:2, j = 1, part = "header")
 
-
+tab
 
 
 
