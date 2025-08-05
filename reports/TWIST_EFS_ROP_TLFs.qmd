@@ -37,10 +37,14 @@ load("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS/data_ar
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsl.R")
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsv.R")
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adststat.R")
+
+# get n for enrolled pop
+n_enrolled <- nrow(subset(adsl, EnrolledFl == "Y"))
 ```
 {{< pagebreak >}}
 
-# Table 2 Patient Disposition & Follow-up Visit Compliance by Interval
+# Table 2 Patient Disposition & Follow-up Visit Compliance by Interval  
+Enrolled Population (N=`r n_enrolled`)
 ```{r table2, message=FALSE, warning=FALSE}
 #| echo: false
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t2_patientdisposition.R")
@@ -74,7 +78,8 @@ t2_patientdisposition
 ```
 {{< pagebreak >}}
 
-# Table 3 Demographics and Baseline Characteristics
+# Table 3 Demographics and Baseline Characteristics  
+Enrolled Population (N=`r n_enrolled`)
 ```{r table3, message=FALSE, warning=FALSE}
 #| echo: false
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t3_baselinedem.R")
@@ -108,7 +113,8 @@ t_baseline
 ```
 {{< pagebreak >}}
 
-# Table 8: CEC Adjudicated Endpoints for Events up to 1 Year
+# Table 8: CEC Adjudicated Endpoints for Events up to 1 Year  
+Enrolled Population (N=`r n_enrolled`)
 ```{r table8, message=FALSE, warning=FALSE}
 #| echo: false
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t8_CEC_MAEs.R")
@@ -168,7 +174,8 @@ t8
 
 ```
 
-# Table 11 CEC Adjudicated Heart Failure Hospitalizations and Non-elective Mitral Valve Reinterventions
+# Table 11 CEC Adjudicated Heart Failure Hospitalizations and Non-elective Mitral Valve Reinterventions  
+Enrolled Population (N=`r n_enrolled`)
 ```{r table11, message=FALSE, warning=FALSE}
 #| echo: false
 #source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
