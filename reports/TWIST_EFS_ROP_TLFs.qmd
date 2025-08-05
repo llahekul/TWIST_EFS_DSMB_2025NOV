@@ -32,12 +32,13 @@ library(lubridate)
 library(stringr)
 library(showtext)
 library(patchwork)
+
 load("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS/data_archive/data_2025JUL28.RData")
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsl.R")
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsv.R")
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adststat.R")
 ```
-
+{{< pagebreak >}}
 
 # Table 2 Patient Disposition & Follow-up Visit Compliance by Interval
 ```{r table2, message=FALSE, warning=FALSE}
@@ -71,7 +72,7 @@ t2_patientdisposition <- flextable(visit_df) %>%
  
 t2_patientdisposition
 ```
-
+{{< pagebreak >}}
 
 # Table 3 Demographics and Baseline Characteristics
 ```{r table3, message=FALSE, warning=FALSE}
@@ -102,9 +103,70 @@ t_baseline <- flextable(summary_table) %>%
   fix_border_issues()
   
   
+
 t_baseline
 ```
+{{< pagebreak >}}
 
+# Table 8: CEC Adjudicated Endpoints for Events up to 1 Year
+```{r table8, message=FALSE, warning=FALSE}
+#| echo: false
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t8_CEC_MAEs.R")
+t8 <- flextable(event_summary) %>%
+  set_caption(caption = NULL) %>%
+  set_header_labels(
+    PARAM             = "Event",
+    `<=30_NoEvents`   = "No. Events",
+    `<=30_Patients`   = "Patients",
+    `>30_NoEvents`    = "No. Events",
+    `>30_Patients`    = "Patients",
+    `Total_NoEvents`  = "No. Events",
+    `Total_Patients`  = "Patients"
+  ) %>%
+  add_header_row(
+    values = c(" ", "Early Events \n (\u2264 30 Days)", "Late Events \n (> 30 days to 1 Year)", "Total Events"),
+    colwidths = c(1, 2, 2, 2)
+  ) %>%
+  autofit() %>%
+  font(fontname = "Calibri", part = "all") %>%
+  fontsize(size = 11, part = "all") %>%
+  align(align = "center", part = "header") %>%
+  align(j = 1, align = "left", part = "body") %>%
+  align(j = 2:7, align = "center", part = "body") %>%
+  bold(i = 1:2, part = "header") %>%
+  bg(i = 1:2, bg = "#D3D3D3", part = "header") %>%
+  border_remove() %>%
+  border_outer(part = "all", border = fp_border(color = "black", width = 1)) %>%
+  border(i = NULL, j = 1, border.right = fp_border(color = "black", width = 1)) %>%
+  border(i = NULL, j = 3, border.right = fp_border(color = "black", width = 1)) %>%
+  border(i = NULL, j = 5, border.right = fp_border(color = "black", width = 1)) %>%
+  # ✅ Extend vertical lines into second header row
+  border(i = 1:2, j = 1, part = "header", border.right = fp_border(color = "black", width = 1)) %>%
+  border(i = 1:2, j = 3, part = "header", border.right = fp_border(color = "black", width = 1)) %>%
+  border(i = 1:2, j = 5, part = "header", border.right = fp_border(color = "black", width = 1)) %>%
+  border(i = 2,   j = 2:7, part = "header", border.top = fp_border(color = "black", width = 1)) %>%
+
+  width(j = 1, width = 4.5) %>%
+  width(j = 2, width = 0.7) %>%
+  width(j = 3, width = 1.1) %>%
+  width(j = 4, width = 0.7) %>%
+  width(j = 5, width = 1.1) %>%
+  width(j = 6, width = 0.7) %>%
+  width(j = 7, width = 1.1) %>%
+  add_footer_lines(paste0(
+    "[1] Includes fatal, life-threatening, extensive or major bleeding as defined by MVARC \n",
+    "Categorical measures: n/N (%).\n",
+    program_info
+  )) %>%
+  font(fontname = "Calibri", part = "footer") %>%
+  fontsize(size = 11, part = "footer") %>%
+  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>%
+  border_outer(part = "footer") %>%
+  fix_border_issues()
+
+t8
+
+```
 
 # Table 11 CEC Adjudicated Heart Failure Hospitalizations and Non-elective Mitral Valve Reinterventions
 ```{r table11, message=FALSE, warning=FALSE}
