@@ -1,101 +1,110 @@
-{library(flextable)
-  library(officer)
-  library(dplyr)
-  library(knitr)
-  library(dplyr)
-  library(tibble)
-  library(stringr)}
+library(dplyr)
+library(tidyr)
+library(flextable)
+library(officer)
 
-extract_date <- "2025JUL28"
-program_name <- "t1_enrollmentbysite.R"
-program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
-                       " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
 
-## NEED TO READ ADSL INTO ENVIRONMENT FIRST 
-#load("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS/data_archive/data_2025JUL16.RData")
-#source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
 
-load(paste0("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/data/data_", extract_date, ".RData"))
-#source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
-#source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsv.R")
-#source("C:/Users/isabelle_weir/Edwards Lifesciences/Luke Hall - TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adststat.R")
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsl.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adecho.R")
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsv.R")
-source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adststat.R")
 
-totaln_enrolled <- dplyr::n_distinct(adsl$USUBJID[adsl$EnrolledFl == "Y"])
-totaln_implanted <- dplyr::n_distinct(adsl$USUBJID[adsl$ImplantedFl == "Y"])
+implanted <- subset(adsl, adsl$ImplantedFl == "Y")
 
-sl_ststat <- left_join(adsl, adststat, by=join_by(USUBJID==USUBJID, Subject==Subject))
-baseline_data <- left_join(sl_ststat, cv_sb1, by=join_by(USUBJID==USUBJID, Subject==Subject, SiteNumber==SiteNumber))
-visit_data <- left_join(sl_ststat, cv_fu2, by=join_by(USUBJID==USUBJID, Subject==Subject, SiteNumber==SiteNumber))
+# get denoms
+denom <- adsv %>%
+  filter(Subject %in% implanted$Subject,
+         !is.na(SVDAT))
 
-# determine denominators:
-ad_sl_sv <- left_join(adsl, adsv, by=join_by(USUBJID==USUBJID, Subject==Subject))
+denom_baseline <- denom %>%
+  filter(VISIT == "Screening/Baseline") %>%
+  nrow()
 
-denominators <- ad_sl_sv %>%
-  filter(ImplantedFl=="Y" & ANL01FL=="Y" & VISIT %in% c("Screening/Baseline", "Discharge", "30 Days", "6 Months", "1 Year")) %>%
-  mutate(VISITnew = recode(VISIT,
-                           "1 Year" = "EO1Y",
-                           "6 Months" = "EO6M",
-                           "Screening/Baseline" = "EO0M",
-                           "30 Days"="EO30D",
-                           "Discharge"="EODS"))%>%
-  group_by(VISITnew)%>%
-  summarise(denom=n())
+denom_discharge <- denom %>%
+  filter(VISIT == "Discharge") %>%
+  nrow()
 
-denomdischarge <- denominators %>%
-  filter(VISITnew=="EODS")%>%
-  select(denom)
+denom_30D <- denom %>%
+  filter(VISIT == "30 Days") %>%
+  nrow()
 
-denom30 <- denominators %>%
-  filter(VISITnew=="EO30D")%>%
-  select(denom)
+denom_6M <- denom %>%
+  filter(VISIT == "6 Months") %>%
+  nrow()
 
-denom6M <- denominators %>%
-  filter(VISITnew=="EO6M")%>%
-  select(denom)
-
-denom1Y <- denominators %>%
-  filter(VISITnew=="EO1Y")%>%
-  select(denom)
-
-# baseline measurement
-baseline_res <- baseline_data %>%
-  filter(ImplantedFl=="Y" & USAFl=="Y")%>%
-  select(USUBJID, CVDAT, CVORRES_MVLREGTS, CVORRES_MVLREGTS_STD, ImplantedFl, USAFl, PRSTDAT)%>%
-  mutate(datediff = difftime(CVDAT, PRSTDAT, units="days"))%>%
-  #summarise(unique_categories = n_distinct(USUBJID))%>%
-  group_by(CVORRES_MVLREGTS_STD)%>%
-  summarise(n=paste0(n(), "/", totaln_implanted, " (", 
-                     format(round(100*n()/totaln_implanted, 1), nsmall=1), "%)"))
-
-# other visits
-visit_res <- visit_data %>%
-  filter(ImplantedFl=="Y" & Folder %in% c("EODS", "EO30D", "EO6M", "EO1Y"))%>%
-  select(USUBJID, CVDAT, CVORRES_TRNSVMR, CVORRES_TRNSVMR_STD, ImplantedFl, USAFl, PRSTDAT, Folder)%>%
-  mutate(datediff = difftime(CVDAT, PRSTDAT, units="days"))%>%
-  #summarise(unique_categories = n_distinct(USUBJID))%>%
-  group_by(Folder, CVORRES_TRNSVMR)%>%
-  summarise(n=paste0(n()))
-
-visit_res
-visit_res_denom <- inner_join(denominators, visit_res, by=join_by(VISITnew==Folder))
-
-visit_results <- visit_res_denom %>%
-  mutate(fraction = as.numeric(n) / denom*100)%>%
-  mutate(res=paste0(n, "/", denom, " (", format(round(fraction, 1), nsmall=1), "%)"))
+denom_1Y <- denom %>%
+  filter(VISIT == "1 Year") %>%
+  nrow()
 
 
-allresults <- tibble(
-  MitralRegug = c("None / Trace", "Mild", "Mild-Moderate", "Moderate-Severe", "Severe", "Not-evaluable"),
-  Baseline = c("-", baseline_res$n[1], baseline_res$n[2], "-"),
-  resDC = c(visit_results),
-  res30D = c(visit_results$res[5:8]),
-  res6M = c(visit_results$res[9:12]),
-  res1Y = c(visit_results$res[2:4], "-")
-)
 
-allresults
+mr <- adecho %>%
+  filter(Subject %in% implanted$Subject,
+         ANL01FL == "Y",
+         AVISIT %in% c("Baseline", "Discharge", "30 Days", "6 Months", "1 Year"),
+         AVALC %in% c("None/Trace", "Mild", "Mild-Moderate", "Moderate-Severe", "Severe"))
 
 
+
+
+# Get all combinations of AVISIT and AVALC
+summary_df <- mr %>%
+  count(AVISIT, AVALC) %>%
+  complete(AVISIT, AVALC, fill = list(n = 0)) %>%
+  group_by(AVISIT) %>%
+  mutate(
+    total = sum(n),
+    pct = ifelse(n == 0, 0, round(100 * n / total, 1)),
+    cell = paste0(n, "/", total, " (", pct, "%)")
+  ) %>%
+  ungroup() %>%
+  select(AVALC, AVISIT, cell) %>%
+  pivot_wider(names_from = AVISIT, values_from = cell)
+
+
+summary_df <- summary_df %>%
+  select(AVALC, Baseline, Discharge, `30 Days`, `6 Months`, `1 Year`)
+
+summary_df <- summary_df %>%
+  mutate(AVALC = factor(AVALC, levels = c(
+    "None/Trace",
+    "Mild",
+    "Mild-Moderate",
+    "Moderate-Severe",
+    "Severe"
+  ))) %>%
+  arrange(AVALC)
+
+
+
+t14_MRgrade <- flextable(summary_df) %>%
+  set_caption(caption = NULL) %>%
+  set_header_labels(
+    AVALC = "",  # First column label
+    Discharge = paste0("Discharge \n (N=", denom_discharge, ")"),
+    Baseline = paste0("Baseline \n (N=", denom_baseline, ")"),
+    `30 Days` = paste0("30 Days \n (N=", denom_30D, ")"),
+    `6 Months` = paste0("6 Months \n (N=", denom_6M, ")"),
+    `1 Year` = paste0("1 Year \n (N=", denom_1Y, ")")
+  ) %>%
+  autofit() %>%
+  font(fontname = "Calibri", part = "all") %>%
+  fontsize(size = 11, part = "all") %>%
+  align(align = "center", part = "body") %>%
+  align(j = 1, align = "left", part = "body") %>%
+  align(j = 2:6, align = "center", part = "header") %>%
+  bold(i = 1, part = "header") %>%
+  bg(i = 1, bg = "#D3D3D3", part = "header") %>%
+  border(part = "all", border = fp_border(color = "black", width = 0.5)) %>%
+  add_footer_lines(c(
+    "Baseline column reports cumulative MR grade, while all other columns report transvalvular MR grade",
+    "Categorical measures (%)",
+    program_info
+  )) %>%
+  font(fontname = "Calibri", part = "footer") %>%
+  fontsize(size = 11, part = "footer") %>%
+  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>%
+  border_outer(part = "footer") %>%
+  fix_border_issues()
+
+t14_MRgrade

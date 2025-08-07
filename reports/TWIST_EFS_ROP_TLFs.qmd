@@ -12,6 +12,7 @@ format:
     theme: cerulean
     highlight: kate
     toc: true
+    toc-title: ""
     toc-float:
       collapsed: false
       smooth-scroll: true
@@ -37,9 +38,14 @@ load("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS/data_ar
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsl.R")
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsv.R")
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adststat.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adecho.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adcec.R")
 
 # get n for enrolled pop
 n_enrolled <- nrow(subset(adsl, EnrolledFl == "Y"))
+
+# get n for implanted pop
+n_implanted <- nrow(subset(adsl, ImplantedFl == "Y"))
 ```
 {{< pagebreak >}}
 
@@ -49,31 +55,7 @@ Enrolled Population (N=`r n_enrolled`)
 #| echo: false
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t2_patientdisposition.R")
 
-t2_patientdisposition <- flextable(visit_df) %>%
-  set_caption(caption = NULL) %>%
-  autofit() %>%
-  font(fontname = "Calibri", part = "all") %>%
-  fontsize(size = 11, part = "all") %>%
-  align(align = "left", part = "all") %>%
-  bold(i = 1, part = "header") %>%
-  bg(i = 1, bg = "#D3D3D3", part = "header") %>%
-  padding(i = 2:4, j = 1:5, padding.left = 40) %>%
-  border(part = "all", border = officer::fp_border(color = "grey70", width = 1)) %>%
-  width(j = 1, width = 2.25) %>%
-  width(j = 2:5, width = 1.75) %>%
-  add_footer_lines(c(
-    "[1] Patients are eligible if they complete the visit or their visit window is open and prior to FU visit window , they (a) are alive , (b) are not explanted,  (c) did not withdraw from study,  (d) are not lost to FU.",
-    "[2] Specify the visit window: 30 Days FU window (23-37 days), 6 FU window (166-194 days), 1 year FU window (335-390 days).",
-    "Categorical measures: %",
-    program_info
-  )) %>%
-  font(fontname = "Calibri", part = "footer") %>% 
-  fontsize(size = 11, part = "footer") %>%
-  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
-  border_outer(part = "footer") %>% 
-  fix_border_issues()
 
- 
 t2_patientdisposition
 ```
 {{< pagebreak >}}
@@ -83,32 +65,8 @@ Enrolled Population (N=`r n_enrolled`)
 ```{r table3, message=FALSE, warning=FALSE}
 #| echo: false
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t3_baselinedem.R")
-t_baseline <- flextable(summary_table) %>%
-  set_header_labels(
-    Variable = "Baseline Characteristic",
-    Statistic = "Total"
-  ) %>%
-  width(j = 1, width = 4) %>%
-  width(j = 2, width = 2) %>%
-  font(fontname = "Calibri", part = "all") %>%
-  fontsize(size = 11, part = "all") %>%
-  align(align = "left", part = "all") %>%
-  bold(i = 1, part = "header") %>%
-  bg(i = 1, bg = "#D3D3D3", part = "header") %>%
-  border(part = "all", border = officer::fp_border(color = "grey70", width = 1)) %>%
-  add_footer_lines(c(
-    "Continuous variables: Mean ± SD (n); Median (min, max)",
-    "Categorical measures: n/Total N (%)",
-    program_info
-  )) %>%
-  font(fontname = "Calibri", part = "footer") %>% 
-  fontsize(size = 11, part = "footer") %>%
-  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
-  border_outer(part = "footer") %>% 
-  fix_border_issues()
   
   
-
 t_baseline
 ```
 {{< pagebreak >}}
@@ -118,6 +76,7 @@ Enrolled Population (N=`r n_enrolled`)
 ```{r table8, message=FALSE, warning=FALSE}
 #| echo: false
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t8_CEC_MAEs.R")
+# Format flextable
 t8 <- flextable(event_summary) %>%
   set_caption(caption = NULL) %>%
   set_header_labels(
@@ -173,6 +132,8 @@ t8 <- flextable(event_summary) %>%
 t8
 
 ```
+{{< pagebreak >}}
+
 
 # Table 11 CEC Adjudicated Heart Failure Hospitalizations and Non-elective Mitral Valve Reinterventions  
 Enrolled Population (N=`r n_enrolled`)
@@ -227,7 +188,8 @@ tab
 ```
 
 
-# Table 13 NYHA Class: Unpaired Analysis
+# Table 13 NYHA Class: Unpaired Analysis  
+Implanted Population (N=`r n_implanted`)
 ```{r table13, message=FALSE, warning=FALSE}
 #| echo: false
 #source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
@@ -267,4 +229,44 @@ tab <-
 
 
 tab
+```
+
+# Table 14 MR Grade by Core Lab TTE: Unpaired Analysis
+Implanted Population (N=`r n_implanted`)
+```{r table14, message=FALSE, warning=FALSE}
+#| echo: false
+#source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_2025_11_DSMB/programs/makedata/mk_adsl.R")
+source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/TLFs/t14_MRgrade.R")
+
+t14_MRgrade <- flextable(summary_df) %>%
+  set_caption(caption = NULL) %>%
+  set_header_labels(
+    AVALC = "",  # First column label
+    Discharge = paste0("Discharge \n (N=", denom_discharge, ")"),
+    Baseline = paste0("Baseline \n (N=", denom_baseline, ")"),
+    `30 Days` = paste0("30 Days \n (N=", denom_30D, ")"),
+    `6 Months` = paste0("6 Months \n (N=", denom_6M, ")"),
+    `1 Year` = paste0("1 Year \n (N=", denom_1Y, ")")
+  ) %>%
+  autofit() %>%
+  font(fontname = "Calibri", part = "all") %>%
+  fontsize(size = 11, part = "all") %>%
+  align(align = "center", part = "body") %>%
+  align(j = 1, align = "left", part = "body") %>%
+  align(j = 2:6, align = "center", part = "header") %>%
+  bold(i = 1, part = "header") %>%
+  bg(i = 1, bg = "#D3D3D3", part = "header") %>%
+  border(part = "all", border = fp_border(color = "black", width = 0.5)) %>%
+  add_footer_lines(c(
+    "Baseline column reports cumulative MR grade, while all other columns report transvalvular MR grade",
+    "Categorical measures (%)",
+    program_info
+  )) %>%
+  font(fontname = "Calibri", part = "footer") %>%
+  fontsize(size = 11, part = "footer") %>%
+  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>%
+  border_outer(part = "footer") %>%
+  fix_border_issues()
+
+t14_MRgrade
 ```

@@ -1,106 +1,15 @@
 library(dplyr)
 
+extract_date <- "2025JUL28"
+program_name <- "t2_patientdisposition.R"
+program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
+                       " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
 
 
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsv.R")
 
-
-
-# create variable showing days from procedure to today
-adsv <- adsv %>%
-  mutate(days_since_procedure = as.numeric(difftime(Sys.Date(), procedure_dt, units = "days")))
-
-
-
-
-
-# create eligible for visit flag 
-# **** ADD IN DEATHS / EXPLANTS / WITHDRAWALS LATER
-adsv <- adsv %>%
-  mutate(ELIGIBLE_FL = case_when(
-    VISIT == "30 Days" & !is.na(days_since_procedure) &
-      days_since_procedure >= (30.5 * 1 - 7) ~ "Y",
-    
-    VISIT == "6 Months" & !is.na(days_since_procedure) &
-      days_since_procedure >= (30.5 * 6 - 14) ~ "Y",
-    
-    VISIT == "1 Year" & !is.na(days_since_procedure) &
-      days_since_procedure >= (30.5 * 12 - 30) ~ "Y",
-    
-    VISIT == "2 Years" & !is.na(days_since_procedure) &
-      days_since_procedure >= (30.5 * 24 - 45) ~ "Y",
-    
-    VISIT %in% c("30 Days", "6 Months", "1 Year", "2 Years") ~ "N",
-    
-    TRUE ~ NA_character_
-  ))
-
-
-# create CRIT01FL = "Y" if the visit fell within the window
-adsv <- adsv %>%
-  mutate(CRIT01FL = case_when(
-    VISIT == "30 Days" & !is.na(VISITDY) &
-      abs(VISITDY) >= (30.5 * 1 - 7) & abs(VISITDY) <= (30.5 * 1 + 7) ~ "Y",
-    VISIT == "30 Days" ~ "N",
-    
-    VISIT == "6 Months" & !is.na(VISITDY) &
-      abs(VISITDY) >= (30.5 * 6 - 14) & abs(VISITDY) <= (30.5 * 6 + 14) ~ "Y",
-    VISIT == "6 Months" ~ "N",
-    
-    VISIT == "1 Year" & !is.na(VISITDY) &
-      abs(VISITDY) >= (30.5 * 12 - 30) & abs(VISITDY) <= (30.5 * 12 + 30) ~ "Y",
-    VISIT == "1 Year" ~ "N",
-    
-    VISIT == "2 Years" & !is.na(VISITDY) &
-      abs(VISITDY) >= (30.5 * 24 - 45) & abs(VISITDY) <= (30.5 * 24 + 45) ~ "Y",
-    VISIT == "2 Years" ~ "N",
-    
-    TRUE ~ NA_character_
-  ))
-
-# create CRIT02FL = "Y" if the visit fell outside of the window
-adsv <- adsv %>%
-  mutate(CRIT02FL = case_when(
-    VISIT == "30 Days" & !is.na(VISITDY) & CRIT01FL == "N" ~ "Y",
-    VISIT == "30 Days" ~ "N",
-    
-    VISIT == "6 Months" & !is.na(VISITDY) & CRIT01FL == "N" ~ "Y",
-    VISIT == "6 Months" ~ "N",
-    
-    VISIT == "1 Year" & !is.na(VISITDY) & CRIT01FL == "N" ~ "Y",
-    VISIT == "1 Year" ~ "N",
-    
-    VISIT == "2 Years" & !is.na(VISITDY) & CRIT01FL == "N" ~ "Y",
-    VISIT == "2 Years" ~ "N",
-    
-    TRUE ~ NA_character_
-  ))
-
-# create VISIT_NOT_PERFORMED flag
-adsv <- adsv %>%
-  mutate(VISIT_NOT_PERFORMED = case_when(
-    VISIT %in% c("30 Days", "6 Months", "1 Year", "2 Years") &
-      is.na(SVDAT) ~ "Y",
-    VISIT %in% c("30 Days", "6 Months", "1 Year", "2 Years") ~ "N",
-    TRUE ~ NA_character_
-  ))
-
-
-test <- adsv %>%
-  filter(VISIT %in% c("30 Days", "6 Months", "1 Year", "2 Years"))
-
-
-
-
-# table 2 in fall DSMB report ----
-library(dplyr)
-library(knitr)
-
-
-# Step 1: Get denominator
 total_patients <- dplyr::n_distinct(adsv$Subject[adsv$VISIT == "Screening/Baseline"])
 
-# Transpose and clean row names
 visit_summary <- adsv %>%
   filter(VISIT %in% c("30 Days", "6 Months", "1 Year", "2 Years")) %>%
   group_by(VISIT) %>%
@@ -112,49 +21,44 @@ visit_summary <- adsv %>%
     OutsideWindow= paste0(sum(CRIT02FL == "Y", na.rm = TRUE), "/", total_patients, " (",
                           round(100 * sum(CRIT02FL == "Y", na.rm = TRUE) / total_patients, 1), "%)"),
     NotPerformed = paste0(sum(VISIT_NOT_PERFORMED == "Y", na.rm = TRUE), "/", total_patients, " (",
-                          round(100 * sum(VISIT_NOT_PERFORMED == "Y", na.rm = TRUE) / total_patients, 1), "%)")
+                          round(100 * sum(VISIT_NOT_PERFORMED == "Y", na.rm = TRUE) / total_patients, 1), "%)"),
+    Ineligible   = paste0(sum(ELIGIBLE_FL == "N", na.rm = TRUE), "/", total_patients, " (",
+                          round(100 * sum(ELIGIBLE_FL == "N", na.rm = TRUE) / total_patients, 1), "%)"),
+    VisitNotDue  = paste0(sum(VISIT_NOT_DUE == "Y", na.rm = TRUE), "/", total_patients, " (",
+                          round(100 * sum(VISIT_NOT_DUE == "Y", na.rm = TRUE) / total_patients, 1), "%)"),
+    DiedBeforeWindow = paste0(sum(DIED_BEFORE_WINDOW == "Y", na.rm = TRUE), "/", total_patients, " (",
+                              round(100 * sum(DIED_BEFORE_WINDOW == "Y", na.rm = TRUE) / total_patients, 1), "%)")
   ) %>%
   column_to_rownames("VISIT") %>%
   t() %>%
   as.data.frame()
 
-# Reorder columns and drop row names
-visit_summary <- visit_summary[, c("30 Days", "6 Months", "1 Year", "2 Years")]
-rownames(visit_summary) <- NULL
 
-# Add final row labels
+visit_summary <- visit_summary[, c("30 Days", "6 Months", "1 Year", "2 Years")]
+
+visit_summary <- visit_summary[c(
+  "Eligible",
+  "WithinWindow",
+  "OutsideWindow",
+  "NotPerformed",
+  "Ineligible",
+  "VisitNotDue",
+  "DiedBeforeWindow"
+), ]
+
 visit_df <- visit_summary %>%
   mutate(`Patient Status at Follow-Up` = c(
     "Eligible for Visit",
     "Visit Completed Within Window",
     "Visit Completed Outside Window",
-    "Visit Not Performed"
+    "Visit Not Performed",
+    "Ineligible for Visit",
+    "Visit Not Due",
+    "Died Before Window"
   )) %>%
   select(`Patient Status at Follow-Up`, everything())
 
-#extract_date = "09JUL2025"
-#program_name = basename(rstudioapi::getSourceEditorContext()$path)
 
-
-library(flextable)
-
-#ft_table2 <- flextable(visit_df) %>%
-#  set_caption(caption = NULL) %>%
-#  autofit() %>%
-#  font(fontname = "Calibri", part = "all") %>%
-#  fontsize(size = 11, part = "all") %>%
-#  align(align = "left", part = "all") %>%
-#  bold(i = 1, part = "header") %>%
-#  bg(i = 1, bg = "#D3D3D3", part = "header") %>%
-#  padding(i = 2:4, j = 1:5, padding.left = 40) %>%
-#  border(part = "all", border = fp_border(color = "grey70", width = 1)) %>%
-#  width(j = 1, width = 2.5) %>%    # Widen "Patient Status at Follow-Up"
-#  width(j = 2:5, width = 2.5)      # Widen each follow-up column
-
-extract_date <- "09JUL2025"
-program_name <- "t1_enrollmentbysite.R"
-program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
-                       " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
 
 t2_patientdisposition <- flextable(visit_df) %>%
   set_caption(caption = NULL) %>%
@@ -164,8 +68,12 @@ t2_patientdisposition <- flextable(visit_df) %>%
   align(align = "left", part = "all") %>%
   bold(i = 1, part = "header") %>%
   bg(i = 1, bg = "#D3D3D3", part = "header") %>%
-  padding(i = 2:4, j = 1:5, padding.left = 40) %>%
-  border(part = "all", border = officer::fp_border(color = "grey70", width = 1)) %>%
+  
+  # Apply left padding to all rows
+  padding(i = 2:4, j = 1:ncol(visit_df), padding.left = 40) %>%
+  padding(i = 6:7, j = 1:ncol(visit_df), padding.left = 40) %>%
+  
+  border(part = "all", border = fp_border(color = "grey70", width = 1)) %>%
   width(j = 1, width = 2.25) %>%
   width(j = 2:5, width = 1.75) %>%
   add_footer_lines(c(
@@ -180,10 +88,4 @@ t2_patientdisposition <- flextable(visit_df) %>%
   border_outer(part = "footer") %>% 
   fix_border_issues()
 
- 
 t2_patientdisposition
-
-
-
-
-

@@ -34,7 +34,7 @@ visit_data <- left_join(sl_ststat, sv, by=join_by(USUBJID==USUBJID, Subject==Sub
 ad_sl_sv <- left_join(adsl, adsv, by=join_by(USUBJID==USUBJID, Subject==Subject))
 
 denominators <- ad_sl_sv %>%
-  filter(ImplantedFl=="Y" & ANL01FL=="Y" & VISIT %in% c("Screening/Baseline", "30 Days", "6 Months", "1 Year")) %>%
+  filter(ImplantedFl=="Y" & !is.na(SVDAT) & VISIT %in% c("Screening/Baseline", "30 Days", "6 Months", "1 Year")) %>%
   mutate(VISITnew = recode(VISIT,
                           "1 Year" = "FU1Y",
                           "6 Months" = "FU6M",
