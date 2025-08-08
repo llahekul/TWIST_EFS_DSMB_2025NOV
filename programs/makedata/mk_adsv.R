@@ -9,7 +9,8 @@ sb <- sv_sb[c("Subject", "FolderName", "SVDAT")]
 discharge <- sv_dchg[c("Subject", "FolderName", "SVDAT")]
 
 # follow-up visits
-visits <- sv[c("Subject", "FolderName", "SVDAT", "SVOCCUR")]
+visits <- sv[c("Subject", "FolderName", "SVDAT", "SVOCCUR", "SVREASOC_SPEC")]
+
 
 # make sure both data frames have the same columns
 all_cols <- union(union(colnames(sb), colnames(discharge)), colnames(visits))
@@ -55,8 +56,8 @@ enrolled <- enrolled[c("Subject")]
 adsv <- left_join(enrolled, adsv, by="Subject")
 
 # remove rows where SVOCCUR == "N"
-adsv <- adsv %>%
-  filter(SVOCCUR != "No" | is.na(SVOCCUR))
+#adsv <- adsv %>%
+#  filter(SVOCCUR != "No" | is.na(SVOCCUR))
 
 
 # add phantom rows
@@ -144,27 +145,38 @@ adsv <- adsv %>%
 adsv <- adsv %>%
   mutate(days_since_procedure = as.numeric(difftime(Sys.Date(), procedure_dt, units = "days")))
 
+adsv$SVREASOC_SPEC[is.na(adsv$SVREASOC_SPEC)] <- ""
+# may need to change later
+# Assuming your data frame is called df
+adsv$SVREASOC_SPEC[adsv$Subject == "2024-13-4-001" & adsv$VISIT == "2 Years"] <- 
+  "Withdrawn from trial. Surgical replacement of TMVR"
+
 
 # eligible for visit flag
 # will need to add explants/LTFUs/discontinuations
 adsv <- adsv %>%
   mutate(ELIGIBLE_FL = case_when(
-    VISIT == "30 Days" & !is.na(days_since_procedure) &
+    VISIT == "30 Days" & !is.na(days_since_procedure) & SVREASOC_SPEC != "Withdrawn from trial. Surgical replacement of TMVR" &
       days_since_procedure >= (30.5 * 1 - 7) & (is.na(DEATHDY) | DEATHDY >= (30.5 * 1 - 7)) ~ "Y",
     
-    VISIT == "6 Months" & !is.na(days_since_procedure) &
+    VISIT == "6 Months" & !is.na(days_since_procedure) & SVREASOC_SPEC != "Withdrawn from trial. Surgical replacement of TMVR" &
       days_since_procedure >= (30.5 * 6 - 14) & (is.na(DEATHDY) | DEATHDY >= (30.5 * 6 - 14)) ~ "Y",
     
-    VISIT == "1 Year" & !is.na(days_since_procedure) &
+    VISIT == "1 Year" & !is.na(days_since_procedure) & SVREASOC_SPEC != "Withdrawn from trial. Surgical replacement of TMVR" &
       days_since_procedure >= (30.5 * 12 - 30) & (is.na(DEATHDY) | DEATHDY >= (30.5 * 12 - 30)) ~ "Y",
     
-    VISIT == "2 Years" & !is.na(days_since_procedure) &
+    VISIT == "2 Years" & !is.na(days_since_procedure) & SVREASOC_SPEC != "Withdrawn from trial. Surgical replacement of TMVR" &
       days_since_procedure >= (30.5 * 24 - 45) & (is.na(DEATHDY) | DEATHDY >= (30.5 * 24 - 45)) ~ "Y",
     
     VISIT %in% c("30 Days", "6 Months", "1 Year", "2 Years") ~ "N",
     
     TRUE ~ NA_character_
   ))
+
+
+
+
+
 
 # create CRIT01FL = "Y" if the visit fell within the window
 adsv <- adsv %>%
@@ -219,6 +231,50 @@ adsv <- adsv %>%
     TRUE ~ NA_character_
   ))
 
+# pending visit within window
+adsv <- adsv %>%
+  mutate(PENDING_VISIT_WITHIN_WINDOW = case_when(
+    VISIT == "30 Days" & VISIT_NOT_PERFORMED == "Y" & ELIGIBLE_FL == "Y" &
+      abs(days_since_procedure) >= (30.5 * 1 - 7) & abs(days_since_procedure) <= (30.5 * 1 + 7) ~ "Y",
+    VISIT == "30 Days" ~ "N",
+    
+    VISIT == "6 Months" & VISIT_NOT_PERFORMED == "Y" & ELIGIBLE_FL == "Y" &
+      abs(days_since_procedure) >= (30.5 * 6 - 14) & abs(days_since_procedure) <= (30.5 * 6 + 14) ~ "Y",
+    VISIT == "6 Months" ~ "N",
+    
+    VISIT == "1 Year" & VISIT_NOT_PERFORMED == "Y" & ELIGIBLE_FL == "Y" &
+      abs(days_since_procedure) >= (30.5 * 12 - 30) & abs(days_since_procedure) <= (30.5 * 12 + 30) ~ "Y",
+    VISIT == "1 Year" ~ "N",
+    
+    VISIT == "2 Years" & VISIT_NOT_PERFORMED == "Y" & ELIGIBLE_FL == "Y" &
+      abs(days_since_procedure) >= (30.5 * 24 - 45) & abs(days_since_procedure) <= (30.5 * 24 + 45) ~ "Y",
+    VISIT == "2 Years" ~ "N",
+    
+    VISIT %in% c("30 Days", "6 Months", "1 Year", "2 Years") ~ "N",
+    
+    TRUE ~ NA_character_
+  ))
+
+# withdrew before window
+adsv <- adsv %>%
+  mutate(WITHDREW_BEFORE_WINDOW = case_when(
+    VISIT == "30 Days" & VISIT_NOT_PERFORMED == "N" & SVREASOC_SPEC == "Withdrawn from trial. Surgical replacement of TMVR" ~ "Y",
+    VISIT == "30 Days" ~ "N",
+    
+    VISIT == "6 Months" & VISIT_NOT_PERFORMED == "N" & SVREASOC_SPEC == "Withdrawn from trial. Surgical replacement of TMVR" ~ "Y",
+    VISIT == "6 Months" ~ "N",
+    
+    VISIT == "1 Year" & VISIT_NOT_PERFORMED == "N" & SVREASOC_SPEC == "Withdrawn from trial. Surgical replacement of TMVR" ~ "Y",
+    VISIT == "1 Year" ~ "N",
+    
+    VISIT == "2 Years" & VISIT_NOT_PERFORMED == "N" & SVREASOC_SPEC == "Withdrawn from trial. Surgical replacement of TMVR" ~ "Y",
+    VISIT == "2 Years" ~ "N",
+    
+    VISIT %in% c("30 Days", "6 Months", "1 Year", "2 Years") ~ "N",
+    
+    TRUE ~ NA_character_
+  ))
+
 # died before window flag
 adsv <- adsv %>%
   mutate(DIED_BEFORE_WINDOW = case_when(
@@ -251,7 +307,8 @@ adsv <- adsv %>%
     TRUE ~ NA_character_
   ))
 
-test <- subset(adsv, adsv$VISIT == "30 Days")
+test1 <- subset(adsv, adsv$VISIT == "1 Year")
+test2 <- subset(adsv, adsv$VISIT == "2 Years")
 
 
 

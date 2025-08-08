@@ -21,7 +21,6 @@ program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsv.R")
 
 total_patients <- dplyr::n_distinct(adsv$Subject[adsv$VISIT == "Screening/Baseline"])
-
 visit_summary <- adsv %>%
   filter(VISIT %in% c("30 Days", "6 Months", "1 Year", "2 Years")) %>%
   group_by(VISIT) %>%
@@ -39,11 +38,16 @@ visit_summary <- adsv %>%
     VisitNotDue  = paste0(sum(VISIT_NOT_DUE == "Y", na.rm = TRUE), "/", total_patients, " (",
                           round(100 * sum(VISIT_NOT_DUE == "Y", na.rm = TRUE) / total_patients, 1), "%)"),
     DiedBeforeWindow = paste0(sum(DIED_BEFORE_WINDOW == "Y", na.rm = TRUE), "/", total_patients, " (",
-                              round(100 * sum(DIED_BEFORE_WINDOW == "Y", na.rm = TRUE) / total_patients, 1), "%)")
+                              round(100 * sum(DIED_BEFORE_WINDOW == "Y", na.rm = TRUE) / total_patients, 1), "%)"),
+    PendingVisitWithinWindow = paste0(sum(PENDING_VISIT_WITHIN_WINDOW == "Y", na.rm = TRUE), "/", total_patients, " (",
+                                      round(100 * sum(PENDING_VISIT_WITHIN_WINDOW == "Y", na.rm = TRUE) / total_patients, 1), "%)"),
+    WithdrewBeforeWindow = paste0(sum(WITHDREW_BEFORE_WINDOW == "Y", na.rm = TRUE), "/", total_patients, " (",
+                                  round(100 * sum(WITHDREW_BEFORE_WINDOW == "Y", na.rm = TRUE) / total_patients, 1), "%)")
   ) %>%
   column_to_rownames("VISIT") %>%
   t() %>%
   as.data.frame()
+
 
 
 visit_summary <- visit_summary[, c("30 Days", "6 Months", "1 Year", "2 Years")]
@@ -53,22 +57,28 @@ visit_summary <- visit_summary[c(
   "WithinWindow",
   "OutsideWindow",
   "NotPerformed",
+  "PendingVisitWithinWindow",
   "Ineligible",
   "VisitNotDue",
-  "DiedBeforeWindow"
+  "DiedBeforeWindow",
+  "WithdrewBeforeWindow"
 ), ]
+
 
 visit_df <- visit_summary %>%
   mutate(`Patient Status at Follow-Up` = c(
     "Eligible for Visit\u00B9",
     "Visit Completed Within Window",
     "Visit Completed Outside Window",
-    "Visit Not Performed",
+    "Visit Not Performed (Reasons Below)",
+    "Pending Visit Within Window",
     "Ineligible for Visit",
     "Visit Not Due",
-    "Died Before Window"
+    "Died Before Window",
+    "Withdrew Before Visit Window"
   )) %>%
   select(`Patient Status at Follow-Up`, everything())
+
 
 
 
@@ -83,7 +93,8 @@ t2_patientdisposition <- flextable(visit_df) %>%
   bg(i = 1, bg = "#D3D3D3", part = "header") %>%
   
   padding(i = 2:4, j = 1:ncol(visit_df), padding.left = 40) %>%
-  padding(i = 6:7, j = 1:ncol(visit_df), padding.left = 40) %>%
+  padding(i = 5, j = 1:ncol(visit_df), padding.left = 65) %>%
+  padding(i = 7:9, j = 1:ncol(visit_df), padding.left = 40) %>%
   
   border(part = "all", border = fp_border(color = "grey70", width = 1)) %>%
   width(j = 1, width = 2.25) %>%
