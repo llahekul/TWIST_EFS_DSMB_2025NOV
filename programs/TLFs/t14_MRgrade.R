@@ -4,6 +4,11 @@ library(flextable)
 library(officer)
 
 
+extract_date <- "2025AUG06"
+program_name <- "t14_MRgrade.R"
+program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
+                       " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
+
 
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adsl.R")
 source("C:/Users/luke_hall/OneDrive - Edwards Lifesciences/lhall/TWIST_EFS_DSMB_2025NOV/programs/makedata/mk_adecho.R")
@@ -80,7 +85,7 @@ summary_df <- summary_df %>%
 t14_MRgrade <- flextable(summary_df) %>%
   set_caption(caption = NULL) %>%
   set_header_labels(
-    AVALC = "",  # First column label
+    AVALC = "MR Grade",  # First column label
     Discharge = paste0("Discharge \n (N=", denom_discharge, ")"),
     Baseline = paste0("Baseline \n (N=", denom_baseline, ")"),
     `30 Days` = paste0("30 Days \n (N=", denom_30D, ")"),
@@ -91,20 +96,21 @@ t14_MRgrade <- flextable(summary_df) %>%
   font(fontname = "Calibri", part = "all") %>%
   fontsize(size = 11, part = "all") %>%
   align(align = "center", part = "body") %>%
+  align(align = "center", part = "header") %>%
   align(j = 1, align = "left", part = "body") %>%
   align(j = 2:6, align = "center", part = "header") %>%
   bold(i = 1, part = "header") %>%
   bg(i = 1, bg = "#D3D3D3", part = "header") %>%
-  border(part = "all", border = fp_border(color = "black", width = 0.5)) %>%
+  border(part = "all", border = fp_border(color = "grey70", width = 0.5)) %>%
   add_footer_lines(c(
     "Baseline column reports cumulative MR grade, while all other columns report transvalvular MR grade",
-    "Categorical measures (%)",
+    "Categorical measures: n/Total N (%)",
     program_info
   )) %>%
   font(fontname = "Calibri", part = "footer") %>%
   fontsize(size = 11, part = "footer") %>%
   padding(part = "footer", padding.top = 1, padding.bottom = 1) %>%
-  border_outer(part = "footer") %>%
+  border_outer(part = "footer", border = fp_border(color = "grey70", width = 1)) %>%
   fix_border_issues()
 
 t14_MRgrade

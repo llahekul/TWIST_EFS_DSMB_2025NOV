@@ -9,7 +9,7 @@
   library(tidyr)
 }
 
-extract_date <- "2025JUL28"
+extract_date <- "2025AUG06"
 program_name <- "t8_CEC_MAEs.R"
 program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
                        " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
@@ -91,10 +91,39 @@ event_summary <- event_summary %>%
 
 
 
+# composite row
+# Total number of events per time window
+composite_events <- adcec %>%
+  summarise(
+    `<=30_NoEvents`  = sum(ANL01FL == "Y", na.rm = TRUE),
+    `>30_NoEvents`   = sum(ANL02FL == "Y", na.rm = TRUE),
+    `Total_NoEvents` = sum(ANL03FL == "Y", na.rm = TRUE)
+  )
 
+# Patients with at least one event per time window
+composite_patients <- adcec %>%
+  summarise(
+    `<=30_Patients_raw`  = n_distinct(Subject[ANL01FL == "Y"]),
+    `>30_Patients_raw`   = n_distinct(Subject[ANL02FL == "Y"]),
+    `Total_Patients_raw` = n_distinct(Subject[ANL03FL == "Y"])
+  )
 
-# Format flextable
-t8 <- flextable(event_summary) %>%
+# Combine and format
+composite_row <- bind_cols(composite_events, composite_patients) %>%
+  mutate(
+    PARAM = "Composite MAE",
+    `<=30_Patients`  = paste0(`<=30_Patients_raw`, "/", denom_all, " (", sprintf("%.1f", `<=30_Patients_raw` / denom_all * 100), "%)"),
+    `>30_Patients`   = paste0(`>30_Patients_raw`, "/", denom_30plus, " (", sprintf("%.1f", `>30_Patients_raw` / denom_30plus * 100), "%)"),
+    `Total_Patients` = paste0(`Total_Patients_raw`, "/", denom_all, " (", sprintf("%.1f", `Total_Patients_raw` / denom_all * 100), "%)")
+  ) %>%
+  select(PARAM,
+         `<=30_NoEvents`, `<=30_Patients`,
+         `>30_NoEvents`,  `>30_Patients`,
+         `Total_NoEvents`, `Total_Patients`)
+
+event_summary <- bind_rows(composite_row, event_summary)
+
+t8_CEC_MAEs <- flextable(event_summary) %>%
   set_caption(caption = NULL) %>%
   set_header_labels(
     PARAM             = "Event",
@@ -106,10 +135,14 @@ t8 <- flextable(event_summary) %>%
     `Total_Patients`  = "Patients"
   ) %>%
   add_header_row(
-    values = c(" ", "Early Events \n (\u2264 30 Days)", "Late Events \n (> 30 days to 1 Year)", "Total Events"),
+    top = TRUE,
+    values = c("Event", "Early Events \n (\u2264 30 Days)", 
+               "Late Events \n (> 30 days to 1 Year)", "Total Events"),
     colwidths = c(1, 2, 2, 2)
   ) %>%
+  
   autofit() %>%
+  bold(i = 1, j = 1, part = "body") %>%
   font(fontname = "Calibri", part = "all") %>%
   fontsize(size = 11, part = "all") %>%
   align(align = "center", part = "header") %>%
@@ -117,17 +150,28 @@ t8 <- flextable(event_summary) %>%
   align(j = 2:7, align = "center", part = "body") %>%
   bold(i = 1:2, part = "header") %>%
   bg(i = 1:2, bg = "#D3D3D3", part = "header") %>%
-  border_remove() %>%
-  border_outer(part = "all", border = fp_border(color = "black", width = 1)) %>%
-  border(i = NULL, j = 1, border.right = fp_border(color = "black", width = 1)) %>%
-  border(i = NULL, j = 3, border.right = fp_border(color = "black", width = 1)) %>%
-  border(i = NULL, j = 5, border.right = fp_border(color = "black", width = 1)) %>%
-  # ✅ Extend vertical lines into second header row
-  border(i = 1:2, j = 1, part = "header", border.right = fp_border(color = "black", width = 1)) %>%
-  border(i = 1:2, j = 3, part = "header", border.right = fp_border(color = "black", width = 1)) %>%
-  border(i = 1:2, j = 5, part = "header", border.right = fp_border(color = "black", width = 1)) %>%
-  border(i = 2,   j = 2:7, part = "header", border.top = fp_border(color = "black", width = 1)) %>%
-
+  fix_border_issues() %>%
+  
+  # Remove horizontal lines between rows 3–7
+  border(i = 3:7, j = 1:7, border.bottom = officer::fp_border(color = "transparent", width = 0), part = "body") %>%
+  
+  # Outer border for entire table
+  border_outer(border = officer::fp_border(color = "grey70", width = 1)) %>%
+  
+  # Header grid lines
+  border_inner_h(part = "header", border = officer::fp_border(color = "grey70", width = 1)) %>%
+  border_inner_v(part = "header", border = officer::fp_border(color = "grey70", width = 1)) %>%
+  
+  # Vertical grid lines in body and header
+  border(j = c(1, 3, 5), border.right = officer::fp_border(color = "grey70", width = 1), part = "body") %>%
+  border(j = c(1, 3, 5), border.right = officer::fp_border(color = "grey70", width = 1), part = "header") %>%
+  
+  # Transparent borders for spacing
+  border(i = 2, j = c(2, 4, 6), border.right = officer::fp_border(color = "transparent", width = 1), part = "body") %>%
+ # border(i = 2, j = c(2, 4, 6), border.right = officer::fp_border(color = "transparent", width = 1), part = "header") %>%
+  #border(i = 1, j = c(1, 3, 5), border.right = officer::fp_border(color = "transparent", width = 1), part = "header") %>%
+  
+  # Column widths
   width(j = 1, width = 4.5) %>%
   width(j = 2, width = 0.7) %>%
   width(j = 3, width = 1.1) %>%
@@ -135,15 +179,27 @@ t8 <- flextable(event_summary) %>%
   width(j = 5, width = 1.1) %>%
   width(j = 6, width = 0.7) %>%
   width(j = 7, width = 1.1) %>%
+  
+  # Footer
   add_footer_lines(paste0(
     "[1] Includes fatal, life-threatening, extensive or major bleeding as defined by MVARC \n",
-    "Categorical measures: n/N (%).\n",
+    "Categorical measures: n/Total N (%)\n",
     program_info
   )) %>%
   font(fontname = "Calibri", part = "footer") %>%
   fontsize(size = 11, part = "footer") %>%
   padding(part = "footer", padding.top = 1, padding.bottom = 1) %>%
-  border_outer(part = "footer") %>%
+  border_outer(part = "footer", border = officer::fp_border(color = "grey70", width = 1)) %>%
   fix_border_issues()
 
-t8
+# Merge the "Event" header cell across two rows
+t8_CEC_MAEs <- merge_at(t8_CEC_MAEs, i = 1:2, j = 1, part = "header")
+
+# Add vertical grid line between "Event" and "Early Events"
+t8_CEC_MAEs <- border(t8_CEC_MAEs, i = 1:2, j = 1, border.right = officer::fp_border(color = "grey70", width = 1), part = "header")
+
+# Remove vertical lines between paired columns in second header row
+t8_CEC_MAEs <- border(t8_CEC_MAEs, i = 2, j = c(2, 4, 6), border.right = officer::fp_border(color = "transparent", width = 1), part = "header")
+
+t8_CEC_MAEs
+

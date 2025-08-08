@@ -13,6 +13,11 @@ library(stringr)
 library(showtext)
 library(patchwork)
 
+extract_date <- "07AUG2025"
+program_name <- "t3_baselinedem.R"
+program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
+                       " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
+
 # enrolled pop
 enrolled <- pr2[!is.na(pr2$PRSTDAT),]
 
@@ -145,21 +150,19 @@ cat_summary <- map_df(categorical_vars, function(var) {
 
 summary_table <- bind_rows(cont_summary, cat_summary)
 
-extract_date <- "28JUL2025"
-program_name <- "t3_baselinedem.R"
-program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
-                       " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
 
-t_baseline <- flextable(summary_table) %>%
+
+t3_baselinedem <- flextable(summary_table) %>%
   set_header_labels(
     Variable = "Baseline Characteristic",
     Statistic = "Total"
   ) %>%
-  width(j = 1, width = 4) %>%
+  width(j = 1, width = 3) %>%
   width(j = 2, width = 2) %>%
   font(fontname = "Calibri", part = "all") %>%
   fontsize(size = 11, part = "all") %>%
-  align(align = "left", part = "all") %>%
+  align(align = "left", part = "body") %>%  # Align body to left
+  align(align = "center", part = "header") %>%  # Center headers
   bold(i = 1, part = "header") %>%
   bg(i = 1, bg = "#D3D3D3", part = "header") %>%
   border(part = "all", border = officer::fp_border(color = "grey70", width = 1)) %>%
@@ -171,11 +174,11 @@ t_baseline <- flextable(summary_table) %>%
   font(fontname = "Calibri", part = "footer") %>% 
   fontsize(size = 11, part = "footer") %>%
   padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
-  border_outer(part = "footer") %>% 
+  border_outer(part = "footer", border = fp_border(color = "grey70", width = 1)) %>%
   fix_border_issues()
   
   
-t_baseline
+t3_baselinedem
 
 
 

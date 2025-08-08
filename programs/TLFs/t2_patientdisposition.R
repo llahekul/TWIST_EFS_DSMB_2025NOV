@@ -1,4 +1,16 @@
+library(knitr)
 library(dplyr)
+library(tibble)
+library(flextable)
+library(tinytex)
+library(officer)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(lubridate)
+library(stringr)
+library(showtext)
+library(patchwork)
 
 extract_date <- "2025JUL28"
 program_name <- "t2_patientdisposition.R"
@@ -48,7 +60,7 @@ visit_summary <- visit_summary[c(
 
 visit_df <- visit_summary %>%
   mutate(`Patient Status at Follow-Up` = c(
-    "Eligible for Visit",
+    "Eligible for Visit\u00B9",
     "Visit Completed Within Window",
     "Visit Completed Outside Window",
     "Visit Not Performed",
@@ -65,11 +77,11 @@ t2_patientdisposition <- flextable(visit_df) %>%
   autofit() %>%
   font(fontname = "Calibri", part = "all") %>%
   fontsize(size = 11, part = "all") %>%
-  align(align = "left", part = "all") %>%
+  align(align = "left", part = "body") %>%
+  align(align = "center", part = "header") %>%
   bold(i = 1, part = "header") %>%
   bg(i = 1, bg = "#D3D3D3", part = "header") %>%
   
-  # Apply left padding to all rows
   padding(i = 2:4, j = 1:ncol(visit_df), padding.left = 40) %>%
   padding(i = 6:7, j = 1:ncol(visit_df), padding.left = 40) %>%
   
@@ -78,14 +90,17 @@ t2_patientdisposition <- flextable(visit_df) %>%
   width(j = 2:5, width = 1.75) %>%
   add_footer_lines(c(
     "[1] Patients are eligible if they complete the visit or their visit window is open and prior to FU visit window , they (a) are alive , (b) are not explanted,  (c) did not withdraw from study,  (d) are not lost to FU.",
-    "[2] Specify the visit window: 30 Days FU window (23-37 days), 6 FU window (166-194 days), 1 year FU window (335-390 days).",
-    "Categorical measures: %",
+    "Visit Windows: 30 Days FU window (23-37 days), 6 FU window (166-194 days), 1 year FU window (335-390 days), 2 year FU window (680-765 days)",
+    "Categorical measures: n/Total N (%)",
     program_info
   )) %>%
   font(fontname = "Calibri", part = "footer") %>% 
   fontsize(size = 11, part = "footer") %>%
   padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
-  border_outer(part = "footer") %>% 
+  border_outer(part = "footer", border = fp_border(color = "grey70", width = 1)) %>%
   fix_border_issues()
 
+
 t2_patientdisposition
+
+

@@ -6,8 +6,8 @@
   library(tibble)
   library(stringr)}
 
-extract_date <- "2025JUL28"
-program_name <- "t1_enrollmentbysite.R"
+extract_date <- "2025AUG06"
+program_name <- "t13_NYHA.R"
 program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
                        " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
 
@@ -96,7 +96,7 @@ allresults <- tibble(
 allresults
 
 # make flextable
-tab <- 
+t13_NYHA <- 
   flextable(allresults) %>%
   set_caption(caption = NULL) %>%
   set_header_labels(
@@ -110,26 +110,27 @@ tab <-
   font(fontname = "Calibri", part = "all") %>%
   fontsize(size = 11, part = "all") %>%
   align(align = "center", part = "body") %>%
+  align(align = "center", part = "header") %>%
   align(i=1:4, j=1, align = "left", part = "body") %>%
   align(i=1, j=2:5, align = "center", part = "header") %>%
   bold(i = 1, part = "header") %>%
   bg(i = 1, bg = "#D3D3D3", part = "header") %>%
-  border(part = "all", border = officer::fp_border(color = "black", width = 0.5)) %>%
+  border(part = "all", border = officer::fp_border(color = "grey70", width = 0.5)) %>%
   # width(j = 1, width = 2) %>%    
   # width(j = 2:7, width = 1) %>% 
   #width(j = 3:4, width = 2) %>%
   add_footer_lines(c(
-    "Categorical measures (%)",
+    "Categorical measures: n/Total N (%)",
     program_info
   )) %>%
     font(fontname = "Calibri", part = "footer") %>% 
     fontsize(size = 11, part = "footer") %>%
     padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
-    border_outer(part = "footer") %>% 
+    border_outer(part = "footer", border = fp_border(color = "grey70", width = 1)) %>%
     fix_border_issues()
 
 
-tab
+t13_NYHA
 
 
 

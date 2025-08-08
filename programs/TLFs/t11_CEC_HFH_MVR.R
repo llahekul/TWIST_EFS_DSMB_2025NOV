@@ -7,8 +7,8 @@
   library(tibble)
   library(stringr)}
 
-extract_date <- "2025JUL28"
-program_name <- "t1_enrollmentbysite.R"
+extract_date <- "2025AUG06"
+program_name <- "t11_CEC_HFH_MVR.R"
 program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
                        " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
 
@@ -126,27 +126,24 @@ allMVR <- t_data %>%
   ))%>%
   mutate(TotalEvents = case_when(TimeWindow %in% c("Early", "Late") ~ "Total"))
 
-allMVR
-
 # calculate the "No. Event" first
 EtotalMVR <- allMVR %>%   
   group_by(TimeWindow)%>%
   filter(TimeWindow %in% c("Early"))%>%
   summarise(n=paste0(n()))
-EtotalMVR
+
 
 LtotalMVR <- allMVR %>%   
   group_by(TimeWindow)%>%
   filter(TimeWindow %in% c("Late"))%>%
   summarise(n=paste0(n()))
-LtotalMVR
+
 
 TtotalMVR <- allMVR %>%  
   group_by(TotalEvents)%>%
   filter(TotalEvents %in% c("Total"))%>%
   summarise(n=paste0(n()))
 
-TtotalMVR
 
 # now calculate the number of unique patients with at least 1 event
 
@@ -162,7 +159,6 @@ EptsMVR <- allMVR %>%
   summarise(n=paste0(n(), "/", onstudy0, " (", 
                         format(round(100*n()/onstudy0, 1), nsmall=1), "%)"))
 
-EptsMVR
 
 LptsMVR <- allMVR %>%
   group_by(USUBJID, TimeWindow) %>%
@@ -182,15 +178,6 @@ TptsMVR <- allMVR %>%
   summarise(n=paste0(n(), "/", onstudy0, " (", 
                         format(round(100*n()/onstudy0, 1), nsmall=1), "%)"))
 
-TptsMVR
-
-
-EtotalMVR
-LtotalMVR
-TtotalMVR
-EptsMVR
-LptsMVR
-TptsMVR
 
 # make raw table: 
 resHFH <- data.frame("Name"=c("Heart Failure Hospitalization"),
@@ -224,8 +211,7 @@ colnames(allresults) <- c("Category",
 allresults
 
 # make flextable
-tab <- 
-  flextable(allresults) %>%
+t11_CEC_HFH_MVR <- flextable(allresults) %>%
   set_caption(caption = NULL) %>%
   set_header_labels(
     Category = "",
@@ -255,18 +241,18 @@ tab <-
   width(j = 2:7, width = 1) %>% 
   #width(j = 3:4, width = 2) %>%
   add_footer_lines(c(
-    "Categorical measures (%)",
+    "Categorical measures: n/Total N (%)",
     program_info
   )) %>%
   font(fontname = "Calibri", part = "footer") %>% 
   fontsize(size = 11, part = "footer") %>%
   padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
-  border_outer(part = "footer") %>% 
+  border_outer(part = "footer", border = officer::fp_border(color = "grey70", width = 1)) %>%
   fix_border_issues()
 
-tab <- merge_at(tab, i = 1:2, j = 1, part = "header")
+t11_CEC_HFH_MVR <- merge_at(t11_CEC_HFH_MVR, i = 1:2, j = 1, part = "header")
 
-tab
+t11_CEC_HFH_MVR
 
 
 
