@@ -10,7 +10,7 @@
 }
 
 extract_date <- "2025AUG06"
-program_name <- "t8_CEC_MAEs.R"
+program_name <- "t8_CEC_adj.R"
 program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
                        " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
 
@@ -123,7 +123,7 @@ composite_row <- bind_cols(composite_events, composite_patients) %>%
 
 event_summary <- bind_rows(composite_row, event_summary)
 
-t8_CEC_MAEs <- flextable(event_summary) %>%
+t8_CEC_adj <- flextable(event_summary) %>%
   set_caption(caption = NULL) %>%
   set_header_labels(
     PARAM             = "Event",
@@ -193,13 +193,13 @@ t8_CEC_MAEs <- flextable(event_summary) %>%
   fix_border_issues()
 
 # Merge the "Event" header cell across two rows
-t8_CEC_MAEs <- merge_at(t8_CEC_MAEs, i = 1:2, j = 1, part = "header")
+t8_CEC_adj <- merge_at(t8_CEC_adj, i = 1:2, j = 1, part = "header")
 
 # Add vertical grid line between "Event" and "Early Events"
-t8_CEC_MAEs <- border(t8_CEC_MAEs, i = 1:2, j = 1, border.right = officer::fp_border(color = "grey70", width = 1), part = "header")
+t8_CEC_adj <- border(t8_CEC_adj, i = 1:2, j = 1, border.right = officer::fp_border(color = "grey70", width = 1), part = "header")
 
 # Remove vertical lines between paired columns in second header row
-t8_CEC_MAEs <- border(t8_CEC_MAEs, i = 2, j = c(2, 4, 6), border.right = officer::fp_border(color = "transparent", width = 1), part = "header")
+t8_CEC_adj <- border(t8_CEC_adj, i = 2, j = c(2, 4, 6), border.right = officer::fp_border(color = "transparent", width = 1), part = "header")
 
-t8_CEC_MAEs
+t8_CEC_adj
 

@@ -251,11 +251,8 @@ adcec <- rbind(deaths, strokes, bleed, vasc, cardiac_comp, aki, card_shock, any)
 #            AVALC = "")                      # assign composite PARAMCD
 #adcec <- rbind(adcec, comp_rows)
 
-# create ANL01FL = "Y" if event happened in first 30 days; 
-# ANL02FL = "Y" if event happened before 6 months;
-# ANL02FL = "Y" if event happened before 1 yr;
-# ANL02FL = "Y" if event happened before 2 yr;
-# ANL02FL = "Y" if event happened before 3 yr;
+# create ANL01FL = "Y" if event happened in first 30 days; ANL02FL = "Y" if event happened after 30 days 
+# but before one year
 proc_dt <- adsl[c("Subject", "PRSTDAT")]
 adcec <- left_join(adcec, proc_dt, by="Subject")
 
@@ -263,12 +260,9 @@ adcec <- adcec %>%
   mutate(
     days_diff = as.numeric(difftime(ADT, PRSTDAT, units = "days")),  # Calculate difference in days
     
-    ANL01FL = if_else(days_diff <= 30, "Y", NA_character_),
-    ANL02FL = if_else(days_diff <= 30.5*6, "Y", NA_character_),
-    ANL03FL = if_else(days_diff <= 365, "Y", NA_character_),
-    ANL04FL = if_else(days_diff <= 720, "Y", NA_character_),
-    ANL05FL = if_else(days_diff <= 1095, "Y", NA_character_)
-    
+    ANL01FL = if_else(days_diff <= 30 & days_diff >= 0, "Y", NA_character_),
+    ANL02FL = if_else(days_diff > 30 & days_diff < 365, "Y", NA_character_),
+    ANL03FL = if_else(days_diff <= 365, "Y", NA_character_)
   ) %>%
   select(-PRSTDAT)
 
