@@ -34,8 +34,9 @@ visit_data <- left_join(sl_ststat, sv, by=join_by(USUBJID==USUBJID, Subject==Sub
 ad_sl_sv <- left_join(adsl, adsv, by=join_by(USUBJID==USUBJID, Subject==Subject))
 
 denominators <- ad_sl_sv %>%
-  filter(ImplantedFl=="Y" & !is.na(SVDAT) & VISIT %in% c("Screening/Baseline", "30 Days", "6 Months", "1 Year")) %>%
+  filter(ImplantedFl=="Y" & !is.na(SVDAT) & VISIT %in% c("Screening/Baseline", "30 Days", "6 Months", "1 Year", "2 Years")) %>%
   mutate(VISITnew = recode(VISIT,
+                          "2 Years" = "FU2Y",
                           "1 Year" = "FU1Y",
                           "6 Months" = "FU6M",
                           "Screening/Baseline" = "FU0M",
@@ -55,6 +56,10 @@ denom1Y <- denominators %>%
   filter(VISITnew=="FU1Y")%>%
   select(denom)
 
+denom2Y <- denominators %>%
+  filter(VISITnew=="FU2Y")%>%
+  select(denom)
+
 # table(baseline_data$RSORRES_NYHACLS_STD)
 # table(baseline_data$RSORRES_NYHACLS)
 
@@ -70,7 +75,7 @@ baseline_res <- baseline_data %>%
 
 # other visits
 visit_res <- visit_data %>%
-  filter(ImplantedFl=="Y" & Folder %in% c("FU30D", "FU6M", "FU1Y"))%>%
+  filter(ImplantedFl=="Y" & Folder %in% c("FU30D", "FU6M", "FU1Y", "FU2Y"))%>%
   select(USUBJID, SVDAT, RSORRES_NYHACLS_STD, RSORRES_NYHACLS, EnrolledFl, USAFl, PRSTDAT, Folder)%>%
   mutate(datediff = difftime(SVDAT, PRSTDAT, units="days"))%>%
   #summarise(unique_categories = n_distinct(USUBJID))%>%
@@ -88,9 +93,10 @@ visit_results <- visit_res_denom %>%
 allresults <- tibble(
     NYHAClass = c("Class I", "Class II", "Class III", "Class IV"),
     Baseline = c("-", baseline_res$n[1], baseline_res$n[2], "-"),
-    res30D = c(visit_results$res[5:8]),
-    res6M = c(visit_results$res[9:12]),
-    res1Y = c(visit_results$res[2:4], "-")
+    res30D = c(visit_results$res[9:12]),
+    res6M = c(visit_results$res[13:16]),
+    res1Y = c(visit_results$res[2:4], "-"),
+    res2Y = c(visit_results$res[6:8], "-")
   )
 
 allresults
@@ -105,7 +111,8 @@ t13_NYHA <-
     Baseline=paste0("Baseline \n (N=", totaln_implanted, ")"),
     res30D=paste0("30 Days \n (N=", denom30, ")"), 
     res6M=paste0("6 Months \n (N=", denom6M, ")"),
-    res1Y=paste0("1 Year \n (N=", denom1Y, ")")) %>%
+    res1Y=paste0("1 Year \n (N=", denom1Y, ")"),
+    res2Y=paste0("2 Years \n (N=", denom2Y, ")")) %>%
   autofit() %>%
   font(fontname = "Calibri", part = "all") %>%
   fontsize(size = 11, part = "all") %>%

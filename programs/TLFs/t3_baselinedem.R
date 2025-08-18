@@ -12,8 +12,10 @@ library(lubridate)
 library(stringr)
 library(showtext)
 library(patchwork)
+library(tidyr)
+library(purrr)
 
-extract_date <- "07AUG2025"
+extract_date <- "06AUG2025"
 program_name <- "t3_baselinedem.R"
 program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
                        " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))
@@ -25,8 +27,8 @@ enrolled <- enrolled[c("Subject")]
 
 
 # age, sex
-age_sex <- dm[c("Subject", "AGE", "SEX")]
-age_sex <- left_join(enrolled, age_sex, by = "Subject")
+dem <- dm[c("Subject", "AGE", "SEX", "CVORRES_STSPROM")]
+dem <- left_join(enrolled, dem, by = "Subject")
 
 # bmi, NYHA
 clin <- sv_sb[c("Subject", "VSORRES_BMI", "RSORRES_NYHACLS")]
@@ -45,37 +47,40 @@ lvef <- left_join(enrolled, lvef, by = "Subject")
 
 
 # medical history
-history <- mh[c("Subject", "MHOCCUR_STROKE", "MHOCCUR_AFIB", "MHOCCUR_PCI", "MHOCCUR_CABG")]
+history <- mh[c("Subject", "MHOCCUR_STROKE", "MHOCCUR_AFIB", "MHOCCUR_PCI", "MHOCCUR_CABG", "MHOCCUR_ACS",
+                 "MHOCCUR_HYPRTENS", "MHOCCUR_DIABETES", "MHOCCUR_RENINSUF")]
 history <- left_join(enrolled, history, by="Subject")
 
 # MERGE ALL DFs TOGETHER
-final_df <- age_sex %>%
+final_df <- dem %>%
   full_join(clin, by = "Subject") %>%
   full_join(lvef, by = "Subject") %>%
   full_join(history, by = "Subject")
 
 
-# make table
-library(dplyr)
-library(tidyr)
-library(purrr)
-
 # Identify variable types
 #categorical_vars <- names(final_df)[sapply(final_df, is.factor) | sapply(final_df, is.character)]
-continuous_vars <- c("AGE", "VSORRES_BMI")
+continuous_vars <- c("AGE", "VSORRES_BMI", "CVORRES_STSPROM")
 # List of binary Y/N variables to filter by "Yes"
 categorical_vars <- c("SEX", "RSORRES_NYHACLS", "CVORRES_LVEF_EC",
-                      "MHOCCUR_STROKE", "MHOCCUR_AFIB", "MHOCCUR_PCI", "MHOCCUR_CABG")
+                      "MHOCCUR_STROKE", "MHOCCUR_AFIB", "MHOCCUR_PCI", "MHOCCUR_CABG", "MHOCCUR_ACS", "MHOCCUR_HYPRTENS", 
+                        "MHOCCUR_DIABETES", "MHOCCUR_RENINSUF")
 
-yes_only_vars <- c("MHOCCUR_STROKE", "MHOCCUR_AFIB", "MHOCCUR_PCI", "MHOCCUR_CABG")
+yes_only_vars <- c("MHOCCUR_STROKE", "MHOCCUR_AFIB", "MHOCCUR_PCI", "MHOCCUR_CABG", "MHOCCUR_ACS", "MHOCCUR_HYPRTENS",
+                    "MHOCCUR_DIABETES", "MHOCCUR_RENINSUF")
 
 label_lookup <- c(
   AGE = "Age (Years)",
+  SEX = "Sex",
   VSORRES_BMI = "BMI (kg/m²)",
-  SEX = "Sex at Birth",
   RSORRES_NYHACLS = "NYHA Class",
   CVORRES_LVEF_EC = "LVEF (TTE)",
+  CVORRES_STSPROM = "STS Score for MR Replacement",
+  MHOCCUR_ACS = "Prior ACS",
+  MHOCCUR_HYPRTENS = "Hypertension",
   MHOCCUR_STROKE = "Stroke",
+  MHOCCUR_DIABETES = "Diabetes",
+  MHOCCUR_RENINSUF = "Renal Insufficiency (eGFR < 60)",
   MHOCCUR_AFIB = "Atrial Fibrillation",
   MHOCCUR_PCI = "PCI",
   MHOCCUR_CABG = "CABG"
@@ -85,7 +90,7 @@ lookup_label <- function(var) label_lookup[[var]] %||% var
 
 
 
-# Summary for continuous variables in compact format
+# summarize continuous variables
 cont_summary <- map_df(continuous_vars, function(var) {
   label <- lookup_label(var)
   
@@ -109,9 +114,7 @@ cont_summary <- map_df(continuous_vars, function(var) {
 
 
 
-
-
-
+# summarize categorical and yes/no variables
 cat_summary <- map_df(categorical_vars, function(var) {
   df <- final_df %>%
     filter(!is.na(.data[[var]]), .data[[var]] != "") %>%  # ← Exclude both NA and ""
@@ -152,13 +155,14 @@ summary_table <- bind_rows(cont_summary, cat_summary)
 
 
 
+
 t3_baselinedem <- flextable(summary_table) %>%
   set_header_labels(
     Variable = "Baseline Characteristic",
     Statistic = "Total"
   ) %>%
-  width(j = 1, width = 3) %>%
-  width(j = 2, width = 2) %>%
+  width(j = 1, width = 4) %>%
+  width(j = 2, width = 2.5) %>%
   font(fontname = "Calibri", part = "all") %>%
   fontsize(size = 11, part = "all") %>%
   align(align = "left", part = "body") %>%  # Align body to left

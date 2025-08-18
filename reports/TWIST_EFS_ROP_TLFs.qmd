@@ -62,7 +62,7 @@ t3_baselinedem
 ```
 {{< pagebreak >}}
 
-# Table 8: CEC Adjudicated Endpoints for Events up to 1 Year
+# Table 8: CEC Adjudicated Endpoints up to 30 Days, 6 Months, 1 Year, and 2 Years
 
 Enrolled Population (N=`r n_enrolled`)
 

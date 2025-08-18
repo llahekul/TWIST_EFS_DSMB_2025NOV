@@ -210,47 +210,69 @@ colnames(allresults) <- c("Category",
 
 allresults
 
-# make flextable
 t11_CEC_HFH_MVR <- flextable(allresults) %>%
   set_caption(caption = NULL) %>%
   set_header_labels(
-    Category = "",
-    E_NEvents="No. Events", 
-    E_Patients="Patients",
-    L_NEvents="No. Events", 
-    L_Patients="Patients",
-    T_NEvents="No. Events", 
-    T_Patients="Patients"
+    Category    = "",
+    E_NEvents   = "No. Events", 
+    E_Patients  = "Patients",
+    L_NEvents   = "No. Events", 
+    L_Patients  = "Patients",
+    T_NEvents   = "No. Events", 
+    T_Patients  = "Patients"
   ) %>%
   add_header_row(
     top = TRUE,
-    values = c("Category", "Early Events \n (\u2264 30 Days)", 
-               "Late Events \n (\u003E 30 Days to 1 Year)", "Total Events"),
-    colwidths = c(1, 2, 2, 2) # Example: 1 column for "Main Header", 1 for "Sub Header 1", 1 for "Sub Header 2"
+    values = c("Category", 
+               "Early Events \n (\u2264 30 Days)", 
+               "Late Events \n (\u003E 30 Days to 1 Year)", 
+               "Total Events"),
+    colwidths = c(1, 2, 2, 2)
   ) %>%
   autofit() %>%
   font(fontname = "Calibri", part = "all") %>%
   fontsize(size = 11, part = "all") %>%
   align(align = "center", part = "body") %>%
-  align(i=1:2, j=1, align = "left", part = "body") %>%
-  align(i=1:2, align = "center", part = "header") %>%
+  align(i = 1:2, j = 1, align = "left", part = "body") %>%
+  align(i = 1:2, align = "center", part = "header") %>%
   bold(i = 1:2, part = "header") %>%
   bg(i = 1:2, bg = "#D3D3D3", part = "header") %>%
-  border(part = "all", border = officer::fp_border(color = "grey70", width = 1)) %>%
-  width(j = 1, width = 2) %>%    
-  width(j = 2:7, width = 1) %>% 
-  #width(j = 3:4, width = 2) %>%
+  
+  # Header grid lines
+  border_inner_h(part = "header", border = officer::fp_border(color = "grey70", width = 1)) %>%
+  border_inner_v(part = "header", border = officer::fp_border(color = "grey70", width = 1)) %>%
+  
+  # Vertical lines ONLY between No. Events and Patients in second header row
+  border(i = 2, j = c(2, 4, 6), border.right = officer::fp_border(color = "grey70", width = 1), part = "header") %>%
+  border(i = 1:2, j = c(1, 3, 5), border.right = officer::fp_border(color = "grey70", width = 1), part = "body") %>%
+  
+  # Transparent borders between paired columns in second header row
+  #border(i = 2, j = c(3, 5, 7), border.right = officer::fp_border(color = "transparent", width = 1), part = "header") %>%
+  
+  # Outer border for entire table
+  border_outer(border = officer::fp_border(color = "grey70", width = 1)) %>%
+  
+  # Column widths
+  width(j = 1, width = 2) %>%
+  width(j = 2:7, width = 1) %>%
+  
+  # Footer
   add_footer_lines(c(
     "Categorical measures: n/Total N (%)",
     program_info
   )) %>%
-  font(fontname = "Calibri", part = "footer") %>% 
+  font(fontname = "Calibri", part = "footer") %>%
   fontsize(size = 11, part = "footer") %>%
-  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>% 
+  padding(part = "footer", padding.top = 1, padding.bottom = 1) %>%
   border_outer(part = "footer", border = officer::fp_border(color = "grey70", width = 1)) %>%
+  
   fix_border_issues()
 
+# Merge the "Category" header cell across two rows
 t11_CEC_HFH_MVR <- merge_at(t11_CEC_HFH_MVR, i = 1:2, j = 1, part = "header")
+
+# Add vertical grid line between "Category" and first time window
+t11_CEC_HFH_MVR <- border(t11_CEC_HFH_MVR, i = 1:2, j = 1, border.right = officer::fp_border(color = "grey70", width = 1), part = "header")
 
 t11_CEC_HFH_MVR
 

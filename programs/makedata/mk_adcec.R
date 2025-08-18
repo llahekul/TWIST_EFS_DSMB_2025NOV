@@ -108,6 +108,22 @@ strokes <- fa_cec %>%
   ) %>%
   rename(ADT = FADAT_NEW) %>%
   select(-starts_with("FAORRES_"))
+# all-cause hospitalization ----
+ach <- fa_cec %>%
+  filter(Subject %in% enrolled$Subject) %>%
+  filter(FAORRES_HOSP == "Yes") %>%
+  select(
+    Subject,
+    FADAT_NEW,
+    FAORRES_HOSP 
+  ) %>%
+  mutate(
+    PARAM   = "All-Cause Hospitalization",
+    PARAMCD = "ACH",
+    AVALC    = ""
+  ) %>%
+  rename(ADT = FADAT_NEW) %>%
+  select(-starts_with("FAORRES_"))
 # bleeding ----
 bleed <- fa_cec %>%
   filter(Subject %in% enrolled$Subject) %>%
@@ -211,7 +227,7 @@ card_shock <- fa_cec %>%
     FAORRES_CRDGSHK
   ) %>%
   mutate(
-    PARAM   = "Unexpected Cardiogenic Shock",
+    PARAM   = "Unexpected Cardiogenic Shock Requiring ICU Admission and Treatment",
     PARAMCD = "SHOCK",
     AVALC    = ""
   ) %>%
@@ -238,7 +254,7 @@ any <- fa_cec %>%
 
   
 # put all params together ----
-adcec <- rbind(deaths, strokes, bleed, vasc, cardiac_comp, aki, card_shock, any)
+adcec <- rbind(deaths, strokes, ach, bleed, vasc, cardiac_comp, aki, card_shock, any)
 
 
 # create composite param

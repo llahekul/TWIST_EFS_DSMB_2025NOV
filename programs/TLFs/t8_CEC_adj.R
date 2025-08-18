@@ -87,15 +87,14 @@ manual_row <- tibble(
 # Bind with your summary table
 event_summary <- bind_rows(event_summary, manual_row)
 
-bleeding_denoms <- adcec %>%
-  filter(PARAM == "Bleeding") %>%
-  summarise(
-    denom_30d_bleed = n_distinct(Subject[ANL01FL == "Y"]),
-    denom_6m_bleed  = n_distinct(Subject[ANL02FL == "Y"]),
-    denom_1y_bleed  = n_distinct(Subject[ANL03FL == "Y"]),
-    denom_2y_bleed  = n_distinct(Subject[ANL04FL == "Y"])
-  )
+bleeding_denoms <- tibble(
+  denom_30d_bleed = adcec %>% filter(PARAM == "Bleeding", ANL01FL == "Y") %>% distinct(Subject) %>% nrow(),
+  denom_6m_bleed  = adcec %>% filter(PARAM == "Bleeding", ANL02FL == "Y") %>% distinct(Subject) %>% nrow(),
+  denom_1y_bleed  = adcec %>% filter(PARAM == "Bleeding", ANL03FL == "Y") %>% distinct(Subject) %>% nrow(),
+  denom_2y_bleed  = adcec %>% filter(PARAM == "Bleeding", ANL04FL == "Y") %>% distinct(Subject) %>% nrow()
+)
 
+test <- subset(adcec, adcec$PARAM == "Bleeding")
 
 bleeding_subsummary <- adcec %>%
   filter(PARAM == "Bleeding") %>%
@@ -155,6 +154,7 @@ event_summary <- event_summary %>%
 param_order <- c(
   "Death",
   "Stroke",
+  "All-Cause Hospitalization",
   "Bleeding",
   "Major bleed",
   "Extensive bleed",
@@ -164,7 +164,7 @@ param_order <- c(
   "Major Cardiac Structural Complications Requiring Surgery to Repair",
   "Stage 2 or 3 Acute Kidney Injury (Including New Dialysis)",
   "Myocardial Infarction or Coronary Ischemia Requiring PCI or CABG",  # 👈 Inserted here
-  "Unexpected Cardiogenic Shock",
+  "Unexpected Cardiogenic Shock Requiring ICU Admission and Treatment",
   "Any Valve-Related Dysfunction, Migration, Thrombosis, or Other Complications Requiring Surgery or Repeat Interventions"
 )
 
@@ -218,6 +218,9 @@ composite_row <- bind_cols(composite_events, composite_patients) %>%
 # Add composite row to event summary
 event_summary <- bind_rows(composite_row, event_summary)
 
+# rename for table
+event_summary$PARAM[event_summary$PARAM == "Stage 2 or 3 Acute Kidney Injury (Including New Dialysis)"] <- 
+  "Acute Kidney Injury\u00B9"
 
 
 
@@ -239,10 +242,10 @@ t8_CEC_adj <- flextable(event_summary) %>%
   add_header_row(
     top = TRUE,
     values = c("Event", 
-               "30 Days", 
-               "6 Months", 
-               "1 Year", 
-               "2 Years"),
+               paste0("30 Days \n (N=", denom_30d, ")"), 
+               paste0("6 Months \n (N=", denom_6m, ")"), 
+               paste0("1 Year \n (N=", denom_1y, ")"), 
+               paste0("2 Years \n (N=", denom_2y, ")")),
                #"3 Years"),
     colwidths = c(1, 2, 2, 2, 2)
   ) %>%
@@ -275,21 +278,23 @@ t8_CEC_adj <- flextable(event_summary) %>%
   # Transparent borders for spacing
   border(i = 2, j = c(2, 4, 6, 8), border.right = officer::fp_border(color = "transparent", width = 1), part = "body") %>%
   
-  padding(i = 5:8, j = 1:ncol(event_summary), padding.left = 40) %>%
+  padding(i = 5:8, j = 1:ncol(event_summary), padding.top = 1, padding.bottom = 1, padding.left = 25) %>%
+
   
   # Column widths
-  width(j = 1, width = 3.5) %>%
-  width(j = 2, width = 0.7) %>%
-  width(j = 3, width = 1.1) %>%
-  width(j = 4, width = 0.7) %>%
-  width(j = 5, width = 1.1) %>%
-  width(j = 6, width = 0.7) %>%
-  width(j = 7, width = 1.1) %>%
-  width(j = 8, width = 0.7) %>%
-  width(j = 9, width = 1.1) %>%
+  width(j = 1, width = 2.9) %>%
+  width(j = 2, width = 0.62) %>%
+  width(j = 3, width = 1.15) %>%
+  width(j = 4, width = 0.62) %>%
+  width(j = 5, width = 1.15) %>%
+  width(j = 6, width = 0.62) %>%
+  width(j = 7, width = 1.15) %>%
+  width(j = 8, width = 0.62) %>%
+  width(j = 9, width = 1.15) %>%
   
   # Footer
   add_footer_lines(paste0(
+    "[1] Stage 2 or 3 AKI, including new dialysis\n",
     "Categorical measures: n/Total N (%)\n",
     program_info
   )) %>%

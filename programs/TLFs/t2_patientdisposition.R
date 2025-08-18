@@ -12,7 +12,7 @@ library(stringr)
 library(showtext)
 library(patchwork)
 
-extract_date <- "2025JUL28"
+extract_date <- "2025AUG06"
 program_name <- "t2_patientdisposition.R"
 program_info <- paste0("Source: ", program_name, " Extract Date: ", extract_date, 
                        " Run Date (Time): ", format(Sys.time(), "%d%b%Y (%H:%M)"))

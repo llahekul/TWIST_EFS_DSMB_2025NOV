@@ -41,12 +41,16 @@ denom_1Y <- denom %>%
   filter(VISIT == "1 Year") %>%
   nrow()
 
+denom_2Y <- denom %>%
+  filter(VISIT == "2 Years") %>%
+  nrow()
+
 
 
 mr <- adecho %>%
   filter(Subject %in% implanted$Subject,
          ANL01FL == "Y",
-         AVISIT %in% c("Baseline", "Discharge", "30 Days", "6 Months", "1 Year"),
+         AVISIT %in% c("Baseline", "Discharge", "30 Days", "6 Months", "1 Year", "2 Years"),
          AVALC %in% c("None/Trace", "Mild", "Mild-Moderate", "Moderate-Severe", "Severe"))
 
 
@@ -68,7 +72,7 @@ summary_df <- mr %>%
 
 
 summary_df <- summary_df %>%
-  select(AVALC, Baseline, Discharge, `30 Days`, `6 Months`, `1 Year`)
+  select(AVALC, Baseline, Discharge, `30 Days`, `6 Months`, `1 Year`, `2 Years`)
 
 summary_df <- summary_df %>%
   mutate(AVALC = factor(AVALC, levels = c(
@@ -90,7 +94,8 @@ t14_MRgrade <- flextable(summary_df) %>%
     Baseline = paste0("Baseline \n (N=", denom_baseline, ")"),
     `30 Days` = paste0("30 Days \n (N=", denom_30D, ")"),
     `6 Months` = paste0("6 Months \n (N=", denom_6M, ")"),
-    `1 Year` = paste0("1 Year \n (N=", denom_1Y, ")")
+    `1 Year` = paste0("1 Year \n (N=", denom_1Y, ")"),
+    `2 Years` = paste0("2 Years \n (N=", denom_2Y, ")")
   ) %>%
   autofit() %>%
   font(fontname = "Calibri", part = "all") %>%
